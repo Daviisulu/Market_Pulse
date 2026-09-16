@@ -20,13 +20,13 @@ export default async function DigestPage(props: PageProps<"/digest/[id]">) {
   if (!digest) notFound();
 
   return (
-    <main className="flex flex-1 flex-col gap-6 p-6 sm:p-8 max-w-5xl mx-auto w-full">
-      <header className="glass rounded-3xl p-6 flex items-baseline justify-between gap-3">
+    <main className="flex flex-1 flex-col gap-6 p-6 sm:p-8 max-w-7xl mx-auto w-full">
+      <header className="glass rounded-2xl px-5 py-3.5 flex items-baseline justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">
+          <h1 className="text-lg font-semibold">
             Digest del {new Date(digest.creatoIl).toLocaleString("it-IT")}
           </h1>
-          <p className="text-sm text-current/60">{digest.signals.length} segnali</p>
+          <p className="text-xs text-current/60">{digest.signals.length} segnali</p>
         </div>
         <Link
           href="/"

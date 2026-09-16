@@ -38,11 +38,11 @@ export default async function Home() {
   }
 
   return (
-    <main className="flex flex-1 flex-col gap-6 p-6 sm:p-8 max-w-5xl mx-auto w-full">
-      <header className="glass rounded-3xl p-6 flex items-baseline justify-between gap-3">
+    <main className="flex flex-1 flex-col gap-6 p-6 sm:p-8 max-w-7xl mx-auto w-full">
+      <header className="glass rounded-2xl px-5 py-3.5 flex items-baseline justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Market Pulse</h1>
-          <p className="text-sm text-current/60">
+          <h1 className="text-lg font-semibold">Market Pulse</h1>
+          <p className="text-xs text-current/60">
             Digest del {new Date(digest.creatoIl).toLocaleString("it-IT")} — {digest.signals.length} segnali
           </p>
         </div>
@@ -59,9 +59,8 @@ export default async function Home() {
         signals={digest.signals}
         totaleSegnali={digest._count.signals}
         tempo="presente"
+        extraSidebar={<DigestList digests={altriDigest} />}
       />
-
-      <DigestList digests={altriDigest} />
     </main>
   );
 }
