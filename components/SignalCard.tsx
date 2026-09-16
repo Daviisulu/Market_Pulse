@@ -33,9 +33,23 @@ export function SignalCard({
       }`}
     >
       <header className="flex items-start justify-between gap-3">
-        <h3 className={featured ? "text-xl font-semibold" : "text-lg font-semibold"}>
-          {signal.nome}
-        </h3>
+        <div className="flex items-center gap-2 flex-wrap">
+          <h3 className={featured ? "text-xl font-semibold" : "text-lg font-semibold"}>
+            {signal.nome}
+          </h3>
+          {signal.primaComparsa && (
+            <span
+              className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium"
+              style={{
+                color: "var(--sentiment-positivo)",
+                backgroundColor: "rgba(127, 127, 127, 0.12)",
+              }}
+              title="Mai comparso in un digest precedente"
+            >
+              nuovo
+            </span>
+          )}
+        </div>
         <span className="shrink-0 rounded-full bg-black/[.05] dark:bg-white/[.08] px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-current/70">
           {signal.tipo}
         </span>

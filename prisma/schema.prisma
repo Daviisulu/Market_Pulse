@@ -55,6 +55,12 @@ model Signal {
   // ora calcolata su quotaAttenzione, non sul conteggio grezzo — vedi
   // sopra.
   variazioneRispettoAlDigestPrecedente  Float?
+  // true se nome+tipo non compare in NESSUN digest precedente (non solo
+  // l'ultimo) — distingue una prima comparsa vera da un segnale che
+  // torna dopo un'assenza. Calcolato una volta alla creazione, non
+  // ricavato a posteriori: riflette cosa si sapeva nel momento del
+  // digest, non lo stato attuale dello storico.
+  primaComparsa                         Boolean
 
   explanation    Explanation?
   priceSnapshots PriceSnapshot[]

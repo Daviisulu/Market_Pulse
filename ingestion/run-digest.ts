@@ -44,6 +44,17 @@ async function run(): Promise<void> {
     include: { signals: true },
   });
 
+  // Tutte le coppie nome+tipo mai comparse in un digest precedente
+  // (non solo l'ultimo) — per distinguere una prima comparsa vera da
+  // un segnale che torna dopo un'assenza. Una query sola invece di una
+  // per segnale.
+  const segnaliStorici = await db.signal.findMany({
+    where: { digestId: { not: digest.id } },
+    select: { nome: true, tipo: true },
+    distinct: ["nome", "tipo"],
+  });
+  const chiaviStoriche = new Set(segnaliStorici.map((s) => `${s.tipo}|${s.nome}`));
+
   const signalsCreati: {
     id: string;
     tipo: SignalType;
@@ -70,6 +81,7 @@ async function run(): Promise<void> {
       quotaAttenzione,
       quotaAttenzionePrecedente,
     });
+    const primaComparsa = !chiaviStoriche.has(`${e.tipo}|${e.nome}`);
 
     const signal = await db.signal.create({
       data: {
@@ -80,6 +92,7 @@ async function run(): Promise<void> {
         quotaAttenzione,
         sentimentMedio: e.sentimentMedio,
         variazioneRispettoAlDigestPrecedente: variazione,
+        primaComparsa,
         newsItems: { connect: e.newsItemIds.map((id) => ({ id })) },
       },
     });

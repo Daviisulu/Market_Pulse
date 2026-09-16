@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { SignalCard } from "@/components/SignalCard";
+import { SOGLIA_BASSA_ATTIVITA } from "@/lib/soglie";
+import { eventiMacroPerData } from "@/lib/calendario-macro";
 
 export const dynamic = "force-dynamic";
 
@@ -37,16 +39,36 @@ export default async function DigestPage(props: PageProps<"/digest/[id]">) {
         </Link>
       </header>
 
+      {eventiMacroPerData(digest.creatoIl).map((evento) => (
+        <p
+          key={evento.data + evento.tipo}
+          className="text-sm glass rounded-2xl px-4 py-3"
+        >
+          <strong>In questa giornata:</strong> {evento.descrizione} — un
+          picco di attenzione su temi collegati (tassi, inflazione,
+          occupazione) era meno sorprendente in una giornata come questa.
+        </p>
+      ))}
+
       {digest.signals.length === 0 ? (
         <p className="text-current/60">Nessun segnale rilevante in questo digest.</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {digest.signals.map((signal) => (
-            <div key={signal.id} className={signal.explanation ? "sm:col-span-2" : ""}>
-              <SignalCard signal={signal} featured={Boolean(signal.explanation)} />
-            </div>
-          ))}
-        </div>
+        <>
+          {digest.signals.length < SOGLIA_BASSA_ATTIVITA && (
+            <p className="text-sm text-current/60 glass rounded-2xl px-4 py-3">
+              Giornata a bassa attività editoriale — pochi segnali non
+              significa che qualcosa non funziona, solo che le fonti
+              seguite hanno pubblicato poco in questa finestra.
+            </p>
+          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {digest.signals.map((signal) => (
+              <div key={signal.id} className={signal.explanation ? "sm:col-span-2" : ""}>
+                <SignalCard signal={signal} featured={Boolean(signal.explanation)} />
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </main>
   );
