@@ -160,10 +160,23 @@ di guardare i numeri.
   cap delle sole aziende del settore effettivamente menzionate nel
   digest: quella somma coprirebbe solo chi finisce in un articolo, non
   il settore reale, dando un benchmark distorto.
-- [ ] **Tasso di successo storico dei segnali trending** — % di segnali
-  marcati trending seguiti da un movimento di prezzo nella direzione
-  del sentiment. Rende esplicita una metrica che è già l'obiettivo di
-  fondo del reliability scoring previsto come step futuro.
+- [~] **Tasso di successo storico dei segnali trending** — **logica di
+  calcolo preparata il 2026-09-16** in `lib/validazione.ts`
+  (`validaSegnale`, `calcolaTassoSuccesso`), testata con dati finti
+  multi-digest, **ma non ancora usata da nessuna parte**: non c'è
+  storico reale sufficiente (serve un `CAMPIONE_MINIMO_AFFIDABILE` di
+  30 segnali validabili, la funzione stessa si rifiuta di segnalarsi
+  "affidabile" sotto quella soglia). Non è vero backtesting — i feed
+  RSS non hanno un archivio storico, quindi non si può testare contro
+  il passato, solo accumulare dati veri da oggi in avanti
+  ("validazione prospettica"). L'orizzonte di confronto (prossimo
+  digest? una settimana dopo?) è lasciato a chi chiamerà la funzione in
+  futuro, non deciso qui: una nota nel vault (`Trading/`, sentiment
+  globale) mostra che lo stesso segnale può avere direzione opposta a
+  seconda dell'orizzonte scelto. **Prossimo passo, non ancora fatto**:
+  uno script/pagina che raccoglie i dati reali da `Signal`+
+  `PriceSnapshot` e chiama questa logica — da scrivere quando c'è
+  abbastanza storico, non prima.
 - [ ] **Corroborazione cross-fonte** — un'entità menzionata da più fonti
   editorialmente distinte è un segnale più solido di più menzioni dalla
   stessa fonte.
@@ -198,6 +211,25 @@ di guardare i numeri.
   geopolitico una volta che esiste il rollup geografico (Livello 2).
 
 ## Ultimo aggiornamento
+
+2026-09-16 (settima modifica) — preparata (non usata) la logica di
+"validazione prospettica" in `lib/validazione.ts`, seguito diretto
+della discussione sull'incrocio prezzi/notizie rimandata nella modifica
+precedente. Chiarito esplicitamente nel codice e qui che non è
+backtesting in senso classico (nessun archivio storico di notizie
+disponibile) — solo la logica di calcolo, testata con dati finti,
+pronta per quando ci sarà storico reale sufficiente (soglia minima 30
+segnali validabili, sotto la quale la funzione stessa si dichiara "non
+affidabile").
+
+2026-09-16 (sesta modifica) — prima code-review strutturata (skill
+`/code-review high`) su tutto il lavoro da ieri sera a oggi: 4 problemi
+reali trovati e risolti — il fix del crash su risposte troncate era
+incompleto (validava solo l'array, non ogni elemento), un bug reale
+sulla soglia "bassa attività" (confrontava il conteggio filtrato invece
+del totale), duplicazione tra le due pagine digest (estratto
+`components/DigestBody.tsx`), accessibilità della stella watchlist
+(`aria-hidden` nascondeva l'unica spiegazione del suo significato).
 
 2026-09-16 (quinta modifica) — implementata la sintesi narrativa
 ("digest come changelog"), l'idea di presentazione segnalata come
