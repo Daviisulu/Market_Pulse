@@ -44,7 +44,16 @@ model Signal {
   tipo                                  String // azienda | asset | settore | paese | tema
   nome                                  String
   conteggioMenzioni                     Int
+  // conteggioMenzioni / numero totale di articoli nel digest — rende
+  // confrontabili tra loro digest con un numero diverso di articoli
+  // (le finestre tra un digest e l'altro non sono uniformi, vedi
+  // "Decisione sulla frequenza" in docs/piano-architettura.md). Usata
+  // al posto del conteggio grezzo per decidere se un segnale già visto
+  // è trending e per calcolare la variazione sotto.
+  quotaAttenzione                       Float
   sentimentMedio                        Float // -1..1
+  // ora calcolata su quotaAttenzione, non sul conteggio grezzo — vedi
+  // sopra.
   variazioneRispettoAlDigestPrecedente  Float?
 
   explanation    Explanation?

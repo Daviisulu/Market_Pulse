@@ -55,15 +55,20 @@ async function run(): Promise<void> {
     newsItemIds: string[];
   }[] = [];
 
+  // Menzioni / totale articoli del digest: rende confrontabile
+  // l'attenzione su un segnale tra digest con un numero diverso di
+  // articoli (vedi ingestion/analysis/trending.ts).
   for (const e of extracted) {
     const precedente = digestPrecedente?.signals.find(
       (s) => s.nome === e.nome && s.tipo === e.tipo,
     );
-    const conteggioMenzioniPrecedente = precedente?.conteggioMenzioni ?? null;
-    const variazione = computeVariazione(e.conteggioMenzioni, conteggioMenzioniPrecedente);
+    const quotaAttenzione = e.conteggioMenzioni / newsItems.length;
+    const quotaAttenzionePrecedente = precedente?.quotaAttenzione ?? null;
+    const variazione = computeVariazione(quotaAttenzione, quotaAttenzionePrecedente);
     const trending = isTrending({
       conteggioMenzioni: e.conteggioMenzioni,
-      conteggioMenzioniPrecedente,
+      quotaAttenzione,
+      quotaAttenzionePrecedente,
     });
 
     const signal = await db.signal.create({
@@ -72,6 +77,7 @@ async function run(): Promise<void> {
         tipo: e.tipo,
         nome: e.nome,
         conteggioMenzioni: e.conteggioMenzioni,
+        quotaAttenzione,
         sentimentMedio: e.sentimentMedio,
         variazioneRispettoAlDigestPrecedente: variazione,
         newsItems: { connect: e.newsItemIds.map((id) => ({ id })) },

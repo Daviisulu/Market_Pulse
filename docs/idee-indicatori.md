@@ -26,10 +26,17 @@ Quando si decide di implementare un'idea, questo file va aggiornato
 
 ## Livello 1 — sulla card, ogni digest
 
-- [ ] **Share of voice invece di conteggio assoluto** — normalizzare le
-  menzioni di un Signal sul totale articoli raccolti nel digest. 10
-  menzioni su 20 articoli non è come 10 su 200; il conteggio assoluto
-  attuale non è comparabile nel tempo se il volume di notizie varia.
+- [x] **Share of voice invece di conteggio assoluto** — **implementato
+  il 2026-09-16** come campo `Signal.quotaAttenzione`
+  (`conteggioMenzioni / totale articoli del digest`), usato al posto
+  del conteggio grezzo sia per decidere se un segnale esistente è
+  trending sia per `variazioneRispettoAlDigestPrecedente`. Il minimo
+  assoluto di menzioni (3) resta come filtro anti-rumore separato,
+  applicato in aggiunta alla quota, non al suo posto. Deciso in
+  conversazione dopo aver fissato la frequenza del digest (3 volte al
+  giorno con finestre non uniformi tra loro), che rendeva il problema
+  concreto e non solo teorico. Vedi `ingestion/analysis/trending.ts` e
+  `docs/piano-architettura.md`.
 - [ ] **Badge "nuovo"** per un Signal mai visto in nessun digest
   precedente — economico da calcolare (già disponibile via il confronto
   col digest precedente usato per `variazioneRispettoAlDigestPrecedente`),
@@ -174,6 +181,10 @@ ancora decise):
   geopolitico una volta che esiste il rollup geografico (Livello 2).
 
 ## Ultimo aggiornamento
+
+2026-09-16 — implementata "Share of voice invece di conteggio assoluto"
+(prima idea di questo file a essere realizzata), vedi la voce spuntata
+sopra per il dettaglio.
 
 2026-09-15 (terza modifica) — aggiunte 4 idee: raffinamento del badge
 "nuovo" (mai apparso vs ritorno dopo assenza), "rottura di correlazione

@@ -42,7 +42,10 @@ export function SignalCard({
       </header>
 
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
-        <span className="text-current/60">{signal.conteggioMenzioni} menzioni</span>
+        <span className="text-current/60">
+          {signal.conteggioMenzioni} menzioni · {(signal.quotaAttenzione * 100).toFixed(1)}%
+          degli articoli
+        </span>
 
         <span className="inline-flex items-center gap-1.5">
           <span
