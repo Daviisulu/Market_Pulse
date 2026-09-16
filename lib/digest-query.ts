@@ -7,7 +7,13 @@ import { SOGLIA_MENZIONI_MINIME_VISUALIZZAZIONE } from "./soglie";
 // `db.digest.findFirst`/`findUnique`.
 export const SIGNALS_QUERY_ARGS = {
   where: { conteggioMenzioni: { gte: SOGLIA_MENZIONI_MINIME_VISUALIZZAZIONE } },
-  include: { explanation: true, priceSnapshots: true },
+  include: {
+    explanation: true,
+    priceSnapshots: true,
+    // Solo la categoria, non l'articolo intero: serve unicamente per
+    // risalire alla categoria dominante del segnale (lib/categoria-mercato.ts).
+    newsItems: { select: { categoria: true } },
+  },
   orderBy: { conteggioMenzioni: "desc" },
 } as const;
 

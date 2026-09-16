@@ -29,23 +29,41 @@ describe("fetchStockPrices", () => {
     quoteMock.mockReset();
   });
 
-  it("mappa nome, ticker, tipo, prezzo e volume restituiti da Yahoo Finance", async () => {
-    quoteMock.mockResolvedValue({ regularMarketPrice: 950.5, regularMarketVolume: 42000000 });
+  it("mappa nome, ticker, tipo, prezzo, volume e capitalizzazione restituiti da Yahoo Finance", async () => {
+    quoteMock.mockResolvedValue({
+      regularMarketPrice: 950.5,
+      regularMarketVolume: 42000000,
+      marketCap: 2_300_000_000_000,
+    });
 
     const result = await fetchStockPrices(["Nvidia"]);
 
     expect(result).toEqual([
-      { nome: "Nvidia", ticker: "NVDA", tipo: "azione", prezzoChiusura: 950.5, volume: 42000000 },
+      {
+        nome: "Nvidia",
+        ticker: "NVDA",
+        tipo: "azione",
+        prezzoChiusura: 950.5,
+        volume: 42000000,
+        marketCap: 2_300_000_000_000,
+      },
     ]);
   });
 
-  it("usa null come volume se Yahoo Finance non lo restituisce", async () => {
+  it("usa null come volume e capitalizzazione se Yahoo Finance non li restituisce (es. un indice)", async () => {
     quoteMock.mockResolvedValue({ regularMarketPrice: 950.5 });
 
     const result = await fetchStockPrices(["Nvidia"]);
 
     expect(result).toEqual([
-      { nome: "Nvidia", ticker: "NVDA", tipo: "azione", prezzoChiusura: 950.5, volume: null },
+      {
+        nome: "Nvidia",
+        ticker: "NVDA",
+        tipo: "azione",
+        prezzoChiusura: 950.5,
+        volume: null,
+        marketCap: null,
+      },
     ]);
   });
 
@@ -59,12 +77,23 @@ describe("fetchStockPrices", () => {
   it("continua con gli altri ticker se uno fallisce", async () => {
     quoteMock
       .mockRejectedValueOnce(new Error("rate limit"))
-      .mockResolvedValueOnce({ regularMarketPrice: 190, regularMarketVolume: 1000 });
+      .mockResolvedValueOnce({
+        regularMarketPrice: 190,
+        regularMarketVolume: 1000,
+        marketCap: 3_000_000_000_000,
+      });
 
     const result = await fetchStockPrices(["Nvidia", "Apple"]);
 
     expect(result).toEqual([
-      { nome: "Apple", ticker: "AAPL", tipo: "azione", prezzoChiusura: 190, volume: 1000 },
+      {
+        nome: "Apple",
+        ticker: "AAPL",
+        tipo: "azione",
+        prezzoChiusura: 190,
+        volume: 1000,
+        marketCap: 3_000_000_000_000,
+      },
     ]);
   });
 

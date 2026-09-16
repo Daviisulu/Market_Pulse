@@ -46,6 +46,7 @@ describe("fetchFeed", () => {
         titolo: "Bitcoin sale del 5%",
         estratto: "Estratto dell'articolo",
         dataPubblicazione: new Date("2026-09-15T10:00:00.000Z"),
+        categoria: "crypto",
       },
     ]);
   });

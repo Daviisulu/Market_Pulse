@@ -25,6 +25,7 @@ export interface CryptoPriceResult {
   nome: string;
   prezzoChiusura: number;
   volume: number | null;
+  marketCap: number | null;
 }
 
 const COINGECKO_URL = "https://api.coingecko.com/api/v3/simple/price";
@@ -32,9 +33,10 @@ const COINGECKO_URL = "https://api.coingecko.com/api/v3/simple/price";
 // API pubblica CoinGecko, nessuna chiave richiesta. Restituisce il prezzo
 // corrente (non uno storico): per gli scopi di PriceSnapshot va bene, dato
 // che ogni digest registra un proprio snapshot nel tempo.
-// include_24hr_vol=true aggiunge il volume scambiato nelle 24h alla
-// stessa risposta, senza una seconda chiamata (verificato il campo
-// esatto — usd_24h_vol — con una chiamata reale all'API il 2026-09-16).
+// include_24hr_vol=true e include_market_cap=true aggiungono volume e
+// capitalizzazione alla stessa risposta, senza chiamate aggiuntive
+// (campi esatti — usd_24h_vol, usd_market_cap — verificati dal vivo il
+// 2026-09-16).
 export async function fetchCryptoPrices(
   nomi: string[],
 ): Promise<CryptoPriceResult[]> {
@@ -45,9 +47,12 @@ export async function fetchCryptoPrices(
   if (mappati.length === 0) return [];
 
   const ids = [...new Set(mappati.map((m) => m.id))].join(",");
-  const url = `${COINGECKO_URL}?ids=${ids}&vs_currencies=usd&include_24hr_vol=true`;
+  const url = `${COINGECKO_URL}?ids=${ids}&vs_currencies=usd&include_24hr_vol=true&include_market_cap=true`;
 
-  let data: Record<string, { usd?: number; usd_24h_vol?: number }>;
+  let data: Record<
+    string,
+    { usd?: number; usd_24h_vol?: number; usd_market_cap?: number }
+  >;
   try {
     const response = await fetch(url);
     if (!response.ok) {
@@ -67,7 +72,12 @@ export async function fetchCryptoPrices(
       log.error(`CoinGecko: prezzo non recuperato per ${nome} (${id})`);
       continue;
     }
-    risultati.push({ nome, prezzoChiusura: prezzo, volume: data[id]?.usd_24h_vol ?? null });
+    risultati.push({
+      nome,
+      prezzoChiusura: prezzo,
+      volume: data[id]?.usd_24h_vol ?? null,
+      marketCap: data[id]?.usd_market_cap ?? null,
+    });
   }
   return risultati;
 }

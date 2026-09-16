@@ -34,6 +34,7 @@ export interface StockPriceResult {
   tipo: StockOrIndexType;
   prezzoChiusura: number;
   volume: number | null;
+  marketCap: number | null;
 }
 
 // Yahoo Finance non ufficiale (nessuna chiave, nessun SLA) — coerente con
@@ -64,6 +65,9 @@ export async function fetchStockPrices(
         tipo: mapping.tipo,
         prezzoChiusura: prezzo,
         volume: quote.regularMarketVolume ?? null,
+        // Un indice (^GSPC ecc.) non ha una capitalizzazione propria:
+        // marketCap resta null per quel tipo, coerente con lo schema.
+        marketCap: quote.marketCap ?? null,
       });
     } catch (err) {
       log.error(

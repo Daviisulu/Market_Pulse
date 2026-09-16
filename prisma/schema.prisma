@@ -29,6 +29,11 @@ model NewsItem {
   titolo            String
   estratto          String
   dataPubblicazione DateTime
+  // "crypto" | "tradizionale" — nota gia' nel feed RSS di origine
+  // (RssFeedConfig.categoria in ingestion/sources/news-rss.ts), qui
+  // solo persistita cosi' un Signal puo' risalire a quanta della sua
+  // attenzione viene dal mondo crypto vs tradizionale.
+  categoria         String
 
   signals Signal[]
 
@@ -105,6 +110,12 @@ model PriceSnapshot {
   // nessuna fonte dati nuova. Opzionale: non tutte le risposte lo
   // includono sempre.
   volume         Float?
+  // Capitalizzazione di mercato nello stesso momento del prezzo (crypto:
+  // CoinGecko usd_market_cap; azioni: Yahoo Finance marketCap — entrambi
+  // verificati dal vivo il 2026-09-16). Assente per gli indici (^GSPC ecc.,
+  // un indice non ha una capitalizzazione propria) — usata per il rapporto
+  // attenzione/capitalizzazione, non solo informativa come il volume.
+  marketCap      Float?
   data           DateTime
 
   @@index([digestId])

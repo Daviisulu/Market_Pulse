@@ -63,27 +63,37 @@ Quando si decide di implementare un'idea, questo file va aggiornato
 
 ## Livello 2 — vista aggregata separata (settimanale/mensile)
 
-- [ ] **Rollup per settore** — aggregare i Signal di tipo
-  `azienda`/`asset` sotto il loro settore (serve una mappa di
-  classificazione curata, stesso principio delle mappe già usate per
-  ticker/CoinGecko ID) e tracciarne il volume di attenzione aggregato
-  nel tempo. Idea di partenza dell'utente. Da valutare se pesare
-  l'aggregazione per capitalizzazione delle aziende coinvolte invece di
-  contare le menzioni a peso uguale — vedi "Rapporto
+- [~] **Rollup per settore/paese** — **versione ridotta implementata il
+  2026-09-16** in `lib/rollup-entita.ts`, mostrata come blocco a sé in
+  `DigestBody.tsx` ("Per settore" / "Per area geografica"), ordinata per
+  quotaAttenzione. Raggruppa solo i Signal già estratti con
+  `tipo: "settore"`/`"paese"` (tipi di prima classe in
+  `SIGNAL_TYPES`, non serve una mappa curata per mostrarli) — **non**
+  aggrega ancora le menzioni di `azienda`/`asset` SOTTO il loro settore
+  di appartenenza, che è l'idea originale qui sotto e richiederebbe la
+  mappa di classificazione curata: rimane da fare. Da valutare in futuro
+  se pesare quell'aggregazione per capitalizzazione delle aziende
+  coinvolte invece di contare le menzioni a peso uguale — vedi "Rapporto
   attenzione/capitalizzazione" sotto.
-- [ ] **Rapporto attenzione/capitalizzazione** — le mega-cap dominano il
-  conteggio grezzo di menzioni quasi sempre per inerzia (sono "sempre
-  nelle notizie"); normalizzare le menzioni di un'azienda/asset per la
-  sua market cap fa emergere le sorprese vere — un'azienda piccola con
-  attenzione sproporzionata alla sua dimensione economica è un segnale
-  più interessante di una mega-cap con lo stesso conteggio assoluto.
-  Nota tecnica: la market cap è già inclusa gratis nelle stesse chiamate
-  che si fanno per il prezzo (`include_market_cap` su CoinGecko,
-  `marketCap` su Yahoo Finance) — non serve una fonte nuova.
-- [ ] **Rollup per paese/area geografica**.
-- [ ] **Rapporto crypto vs tradizionale** — dove si sposta l'attenzione
-  generale tra i due mondi; bucket-abile subito, la distinzione esiste
-  già in `news-rss.ts` (`categoria: "crypto" | "tradizionale"`).
+- [x] **Rapporto attenzione/capitalizzazione** — **implementato il
+  2026-09-16** in `lib/attenzione-capitalizzazione.ts`: confronta il
+  rapporto quotaAttenzione/marketCap di ogni segnale con la mediana del
+  gruppo (solo segnali con marketCap noto) ALL'INTERNO dello stesso
+  digest, non nel tempo come pensato inizialmente — un confronto storico
+  richiederebbe normalizzare per la volatilità propria di ogni asset,
+  rimandato. Badge "attenzione elevata/contenuta vs size" sulla card
+  solo per gli outlier (≥3x o ≤1/3 della mediana), non per ogni segnale.
+  `PriceSnapshot.marketCap` (crypto: CoinGecko `usd_market_cap`; azioni:
+  Yahoo Finance `marketCap`, assente per gli indici — entrambi verificati
+  dal vivo il 2026-09-16) letto dalla stessa chiamata già fatta per
+  prezzo/volume, nessuna fonte dati nuova.
+- [x] **Rapporto crypto vs tradizionale** — **implementato il
+  2026-09-16** in `lib/categoria-mercato.ts`: `NewsItem.categoria` (nuovo
+  campo, valorizzato da `RssFeedConfig.categoria` già esistente in
+  `news-rss.ts`) propagato a ogni Signal in base alla categoria
+  maggioritaria dei suoi articoli di origine (o "mista" in caso di
+  parità), sommato per quotaAttenzione e mostrato come riga nella sintesi
+  del digest.
 - [ ] **Market mood index nel tempo** — media pesata di tutti i
   sentiment di un digest, come termometro generale; interessante come
   grafico storico su più digest, non come numero isolato.
@@ -93,9 +103,11 @@ Quando si decide di implementare un'idea, questo file va aggiornato
 - [ ] **Dispersione/varianza del sentiment**, non solo la media — un
   Signal con metà articoli molto positivi e metà molto negativi è
   diverso da uno uniformemente neutro, anche a sentiment medio uguale.
-- [ ] **Indice di concentrazione del digest** (tipo Herfindahl) — quanto
-  poche entità dominano l'attenzione totale vs quanto è distribuita;
-  contesto per interpretare i singoli segnali, non un dato su ogni card.
+- [x] **Indice di concentrazione del digest** (tipo Herfindahl) —
+  **implementato il 2026-09-16** in `lib/concentrazione.ts`: HHI
+  normalizzato per il numero di segnali (confrontabile tra digest con un
+  numero diverso di segnali), etichettato bassa/media/alta e mostrato
+  nella sintesi del digest come contesto, non come dato su ogni card.
 
 ### Calendario di eventi noti — segnalato di interesse dall'utente
 
@@ -211,6 +223,15 @@ di guardare i numeri.
   geopolitico una volta che esiste il rollup geografico (Livello 2).
 
 ## Ultimo aggiornamento
+
+2026-09-16 (ottava modifica) — implementati 4 indicatori di Livello 2 in
+forma ridotta a singolo digest (non vista aggregata settimanale/mensile
+come pensato inizialmente, coerente con "misura prima di fidarti": non
+c'è ancora storico sufficiente per una vista nel tempo): indice di
+concentrazione (Herfindahl), rapporto crypto vs tradizionale, rapporto
+attenzione/capitalizzazione, rollup per settore/area geografica (versione
+ridotta — vedi nota su cosa manca ancora nella voce del backlog). Verifica
+visiva con un digest finto che copre tutti e 4 insieme, poi rimosso.
 
 2026-09-16 (settima modifica) — preparata (non usata) la logica di
 "validazione prospettica" in `lib/validazione.ts`, seguito diretto

@@ -3,9 +3,15 @@ import type { Explanation, PriceSnapshot, Signal } from "@/generated/prisma/clie
 export type SignalWithRelations = Signal & {
   explanation: Explanation | null;
   priceSnapshots: PriceSnapshot[];
+  newsItems: { categoria: string }[];
 };
 
-function sentimentInfo(v: number): { label: string; varName: string } {
+const ETICHETTA_ATTENZIONE_CAP: Record<"sproporzionata" | "sottotono", string> = {
+  sproporzionata: "attenzione elevata vs size",
+  sottotono: "attenzione contenuta vs size",
+};
+
+export function sentimentInfo(v: number): { label: string; varName: string } {
   if (v > 0.15) return { label: "positivo", varName: "--sentiment-positivo" };
   if (v < -0.15) return { label: "negativo", varName: "--sentiment-negativo" };
   return { label: "neutro", varName: "--sentiment-neutro" };
@@ -24,10 +30,12 @@ export function SignalCard({
   signal,
   featured = false,
   inWatchlist = false,
+  livelloAttenzioneCap,
 }: {
   signal: SignalWithRelations;
   featured?: boolean;
   inWatchlist?: boolean;
+  livelloAttenzioneCap?: "sproporzionata" | "proporzionata" | "sottotono";
 }) {
   const prezzo = signal.priceSnapshots.at(-1);
   const variazione = signal.variazioneRispettoAlDigestPrecedente;
@@ -64,6 +72,14 @@ export function SignalCard({
               title="Mai comparso in un digest precedente"
             >
               nuovo
+            </span>
+          )}
+          {(livelloAttenzioneCap === "sproporzionata" || livelloAttenzioneCap === "sottotono") && (
+            <span
+              className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium bg-black/[.05] dark:bg-white/[.08] text-current/70"
+              title="Rispetto alla capitalizzazione di mercato, confrontato con gli altri segnali di questo digest"
+            >
+              {ETICHETTA_ATTENZIONE_CAP[livelloAttenzioneCap]}
             </span>
           )}
         </div>

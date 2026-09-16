@@ -39,6 +39,7 @@ export interface RawNewsItem {
   titolo: string;
   estratto: string;
   dataPubblicazione: Date;
+  categoria: "crypto" | "tradizionale";
 }
 
 const parser = new Parser();
@@ -53,6 +54,7 @@ export async function fetchFeed(feed: RssFeedConfig): Promise<RawNewsItem[]> {
       titolo: item.title!,
       estratto: item.contentSnippet ?? item.content ?? "",
       dataPubblicazione: item.isoDate ? new Date(item.isoDate) : new Date(),
+      categoria: feed.categoria,
     }));
 }
 
