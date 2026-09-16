@@ -16,19 +16,34 @@ describe("fetchCryptoPrices", () => {
     vi.unstubAllGlobals();
   });
 
-  it("mappa i nomi ai prezzi restituiti da CoinGecko", async () => {
+  it("mappa i nomi ai prezzi e al volume restituiti da CoinGecko", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ bitcoin: { usd: 65000 }, ethereum: { usd: 3200 } }),
+      json: async () => ({
+        bitcoin: { usd: 65000, usd_24h_vol: 38000000000 },
+        ethereum: { usd: 3200, usd_24h_vol: 12000000000 },
+      }),
     });
     vi.stubGlobal("fetch", fetchMock);
 
     const result = await fetchCryptoPrices(["Bitcoin", "Ethereum"]);
 
     expect(result).toEqual([
-      { nome: "Bitcoin", prezzoChiusura: 65000 },
-      { nome: "Ethereum", prezzoChiusura: 3200 },
+      { nome: "Bitcoin", prezzoChiusura: 65000, volume: 38000000000 },
+      { nome: "Ethereum", prezzoChiusura: 3200, volume: 12000000000 },
     ]);
+  });
+
+  it("usa null come volume se CoinGecko non lo restituisce", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ bitcoin: { usd: 65000 } }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await fetchCryptoPrices(["Bitcoin"]);
+
+    expect(result).toEqual([{ nome: "Bitcoin", prezzoChiusura: 65000, volume: null }]);
   });
 
   it("ignora i nomi non presenti nella mappa curata senza chiamare l'API", async () => {

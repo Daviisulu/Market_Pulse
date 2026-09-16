@@ -99,6 +99,12 @@ model PriceSnapshot {
   ticker         String
   tipo           String // crypto | azione | indice
   prezzoChiusura Float
+  // Volume scambiato nelle 24h (crypto, CoinGecko usd_24h_vol) o
+  // volume di sessione (azioni/indici, Yahoo Finance
+  // regularMarketVolume) — stessa chiamata già fatta per il prezzo,
+  // nessuna fonte dati nuova. Opzionale: non tutte le risposte lo
+  // includono sempre.
+  volume         Float?
   data           DateTime
 
   @@index([digestId])

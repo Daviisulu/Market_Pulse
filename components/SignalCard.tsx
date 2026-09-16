@@ -11,6 +11,11 @@ function sentimentInfo(v: number): { label: string; varName: string } {
   return { label: "neutro", varName: "--sentiment-neutro" };
 }
 
+const formatVolume = new Intl.NumberFormat("it-IT", {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
 // tipo/nome sono già distinti tra loro dal grassetto del titolo: il badge
 // non ha bisogno del proprio colore di sfondo per ogni valore (evita
 // l'errore di "tingere tutto" segnalato nelle note su Liquid Glass/tinting
@@ -86,6 +91,7 @@ export function SignalCard({
         {prezzo && (
           <span className="ml-auto font-mono text-xs text-current/60">
             {prezzo.ticker} · {prezzo.prezzoChiusura.toLocaleString("it-IT")}
+            {prezzo.volume !== null && ` · vol ${formatVolume.format(prezzo.volume)}`}
           </span>
         )}
       </div>

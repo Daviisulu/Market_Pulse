@@ -24,6 +24,7 @@ export function isCryptoAsset(nome: string): boolean {
 export interface CryptoPriceResult {
   nome: string;
   prezzoChiusura: number;
+  volume: number | null;
 }
 
 const COINGECKO_URL = "https://api.coingecko.com/api/v3/simple/price";
@@ -31,6 +32,9 @@ const COINGECKO_URL = "https://api.coingecko.com/api/v3/simple/price";
 // API pubblica CoinGecko, nessuna chiave richiesta. Restituisce il prezzo
 // corrente (non uno storico): per gli scopi di PriceSnapshot va bene, dato
 // che ogni digest registra un proprio snapshot nel tempo.
+// include_24hr_vol=true aggiunge il volume scambiato nelle 24h alla
+// stessa risposta, senza una seconda chiamata (verificato il campo
+// esatto — usd_24h_vol — con una chiamata reale all'API il 2026-09-16).
 export async function fetchCryptoPrices(
   nomi: string[],
 ): Promise<CryptoPriceResult[]> {
@@ -41,9 +45,9 @@ export async function fetchCryptoPrices(
   if (mappati.length === 0) return [];
 
   const ids = [...new Set(mappati.map((m) => m.id))].join(",");
-  const url = `${COINGECKO_URL}?ids=${ids}&vs_currencies=usd`;
+  const url = `${COINGECKO_URL}?ids=${ids}&vs_currencies=usd&include_24hr_vol=true`;
 
-  let data: Record<string, { usd?: number }>;
+  let data: Record<string, { usd?: number; usd_24h_vol?: number }>;
   try {
     const response = await fetch(url);
     if (!response.ok) {
@@ -63,7 +67,7 @@ export async function fetchCryptoPrices(
       log.error(`CoinGecko: prezzo non recuperato per ${nome} (${id})`);
       continue;
     }
-    risultati.push({ nome, prezzoChiusura: prezzo });
+    risultati.push({ nome, prezzoChiusura: prezzo, volume: data[id]?.usd_24h_vol ?? null });
   }
   return risultati;
 }

@@ -125,13 +125,23 @@ async function run(): Promise<void> {
 
   const prezziPerNome = new Map<
     string,
-    { tipo: "crypto" | "azione" | "indice"; ticker: string; prezzo: number }
+    { tipo: "crypto" | "azione" | "indice"; ticker: string; prezzo: number; volume: number | null }
   >();
   for (const p of prezziCripto) {
-    prezziPerNome.set(p.nome, { tipo: "crypto", ticker: p.nome, prezzo: p.prezzoChiusura });
+    prezziPerNome.set(p.nome, {
+      tipo: "crypto",
+      ticker: p.nome,
+      prezzo: p.prezzoChiusura,
+      volume: p.volume,
+    });
   }
   for (const p of prezziAzioni) {
-    prezziPerNome.set(p.nome, { tipo: p.tipo, ticker: p.ticker, prezzo: p.prezzoChiusura });
+    prezziPerNome.set(p.nome, {
+      tipo: p.tipo,
+      ticker: p.ticker,
+      prezzo: p.prezzoChiusura,
+      volume: p.volume,
+    });
   }
 
   for (const signal of signalsCreati) {
@@ -144,6 +154,7 @@ async function run(): Promise<void> {
         ticker: prezzo.ticker,
         tipo: prezzo.tipo,
         prezzoChiusura: prezzo.prezzo,
+        volume: prezzo.volume,
         data: new Date(),
       },
     });

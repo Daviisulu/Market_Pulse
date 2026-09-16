@@ -33,6 +33,7 @@ export interface StockPriceResult {
   ticker: string;
   tipo: StockOrIndexType;
   prezzoChiusura: number;
+  volume: number | null;
 }
 
 // Yahoo Finance non ufficiale (nessuna chiave, nessun SLA) — coerente con
@@ -62,6 +63,7 @@ export async function fetchStockPrices(
         ticker: mapping.ticker,
         tipo: mapping.tipo,
         prezzoChiusura: prezzo,
+        volume: quote.regularMarketVolume ?? null,
       });
     } catch (err) {
       log.error(
