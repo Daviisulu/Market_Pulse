@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f4f5f7;
+  --foreground: #1c1c1e;
+
+  /* Sfondo "mesh" colorato: il glassmorphism ha bisogno di qualcosa di
+     colorato dietro le card perché il blur sia visibile, non solo un
+     colore piatto (vedi Design-Glassmorphism/anatomia-css-...). */
+  --blob-1: #a5b4fc;
+  --blob-2: #f5d0fe;
+  --blob-3: #99f6e4;
+
+  /* Superficie vetro (Design-Glassmorphism): sfondo quasi bianco a bassa
+     opacità + bordo quasi bianco che simula il riflesso sul vetro. */
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-shadow: rgba(15, 23, 42, 0.08);
+
+  --sentiment-positivo: #059669;
+  --sentiment-negativo: #e11d48;
+  --sentiment-neutro: #71717a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+/* prefers-color-scheme (Design-Apple/la-media-query-prefers-color-scheme...):
+   un'unica preferenza di sistema, niente selettore manuale. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0b0b10;
+    --foreground: #f2f2f5;
+
+    --blob-1: #4338ca;
+    --blob-2: #86198f;
+    --blob-3: #0f766e;
+
+    --glass-bg: rgba(24, 24, 32, 0.55);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-shadow: rgba(0, 0, 0, 0.35);
+
+    --sentiment-positivo: #34d399;
+    --sentiment-negativo: #fb7185;
+    --sentiment-neutro: #a1a1aa;
+  }
+}
+
+body {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(circle at 15% 20%, var(--blob-1) 0%, transparent 45%),
+    radial-gradient(circle at 85% 15%, var(--blob-2) 0%, transparent 40%),
+    radial-gradient(circle at 50% 90%, var(--blob-3) 0%, transparent 45%);
+  background-attachment: fixed;
+  color: var(--foreground);
+  /* Font di sistema (Design-Apple/il-valore-system-ui...): eredita San
+     Francisco su Apple, Segoe UI su Windows, Roboto su Android — nessun
+     webfont da scaricare. */
+  font-family: system-ui, sans-serif;
+}
+
+/* Card "vetro smerigliato" (Design-Glassmorphism/anatomia-css-di-una-card...):
+   sfondo semi-trasparente + backdrop-filter blur + bordo sottile quasi
+   bianco + ombra esterna morbida e ombre interne che simulano il
+   riflesso della luce sul vetro. */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    0 8px 32px var(--glass-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Rispetta la preferenza di movimento ridotto (Design-Apple/
+   la-media-query-prefers-reduced-motion...): niente transizioni per chi
+   l'ha attivata a livello di sistema. */
+@media (prefers-reduced-motion: no-preference) {
+  .glass-hover {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .glass-hover:hover {
+    transform: translateY(-2px);
+  }
+}

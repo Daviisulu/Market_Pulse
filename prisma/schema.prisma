@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// Un run dell'ingestion: raccoglie notizie, ne estrae segnali (Signal)
+// e registra i prezzi reali (PriceSnapshot) degli asset coinvolti.
+model Digest {
+  id             String   @id @default(cuid())
+  creatoIl       DateTime @default(now())
+  periodoCoperto String
+
+  newsItems      NewsItem[]
+  signals        Signal[]
+  priceSnapshots PriceSnapshot[]
+}
+
+// Un articolo grezzo raccolto in un digest, prima di qualunque analisi.
+model NewsItem {
+  id                String   @id @default(cuid())
+  digestId          String
+  digest            Digest   @relation(fields: [digestId], references: [id])
+  fonte             String
+  url               String
+  titolo            String
+  estratto          String
+  dataPubblicazione DateTime
+
+  signals Signal[]
+
+  @@index([digestId])
+}
+
+// Un'entità/tema estratto dalle notizie di un digest (azienda, asset,
+// settore, paese, tema), con quanto se ne parla e con che tono.
+model Signal {
+  id                                    String @id @default(cuid())
+  digestId                              String
+  digest                                Digest @relation(fields: [digestId], references: [id])
+  tipo                                  String // azienda | asset | settore | paese | tema
+  nome                                  String
+  conteggioMenzioni                     Int
+  sentimentMedio                        Float // -1..1
+  variazioneRispettoAlDigestPrecedente  Float?
+
+  explanation    Explanation?
+  priceSnapshots PriceSnapshot[]
+  // articoli grezzi da cui e' stato estratto questo segnale — traccia
+  // la provenienza (dashboard) e da' contesto reale alla spiegazione
+  // didattica (ingestion/analysis/explain-trending.ts) invece di farla
+  // scrivere all'LLM senza fonti sotto mano.
+  newsItems      NewsItem[]
+
+  @@index([digestId])
+}
+
+// Spiegazione didattica generata solo per i Signal che superano la
+// soglia di "trending" — non uno per ogni Signal.
+model Explanation {
+  id           String @id @default(cuid())
+  signalId     String @unique
+  signal       Signal @relation(fields: [signalId], references: [id])
+  testo        String
+  modelloUsato String
+}
+
+// Prezzo di chiusura giornaliero dell'asset legato a un Signal,
+// raccolto in parallelo per poter validare più avanti quanto i Signal
+// anticipano davvero un movimento di mercato reale.
+model PriceSnapshot {
+  id             String   @id @default(cuid())
+  digestId       String
+  digest         Digest   @relation(fields: [digestId], references: [id])
+  signalId       String?
+  signal         Signal?  @relation(fields: [signalId], references: [id])
+  ticker         String
+  tipo           String // crypto | azione | indice
+  prezzoChiusura Float
+  data           DateTime
+
+  @@index([digestId])
+  @@index([signalId])
+}

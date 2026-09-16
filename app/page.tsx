@@ -1,0 +1,67 @@
+import { db } from "@/lib/db";
+import { SignalCard } from "@/components/SignalCard";
+import { DigestList } from "@/components/DigestList";
+
+// Query ogni volta: dashboard personale a basso traffico, la freschezza
+// del digest più recente conta più della cache statica.
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const [digest, altriDigest] = await Promise.all([
+    db.digest.findFirst({
+      orderBy: { creatoIl: "desc" },
+      include: {
+        signals: {
+          include: { explanation: true, priceSnapshots: true },
+          orderBy: { conteggioMenzioni: "desc" },
+        },
+      },
+    }),
+    db.digest.findMany({
+      orderBy: { creatoIl: "desc" },
+      skip: 1,
+      take: 10,
+    }),
+  ]);
+
+  if (!digest) {
+    return (
+      <main className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
+        <div className="glass rounded-3xl p-8 flex flex-col items-center gap-2">
+          <h1 className="text-xl font-semibold">Nessun digest ancora</h1>
+          <p className="text-current/60">
+            Esegui <code className="rounded bg-black/[.06] px-1.5 py-0.5 dark:bg-white/[.08]">npm run digest</code> per generarne uno.
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="flex flex-1 flex-col gap-6 p-6 sm:p-8 max-w-5xl mx-auto w-full">
+      <header className="glass rounded-3xl p-6">
+        <h1 className="text-2xl font-semibold">Market Pulse</h1>
+        <p className="text-sm text-current/60">
+          Digest del {new Date(digest.creatoIl).toLocaleString("it-IT")} — {digest.signals.length} segnali
+        </p>
+      </header>
+
+      {digest.signals.length === 0 ? (
+        <p className="text-current/60">Nessun segnale rilevante in questo digest.</p>
+      ) : (
+        // Griglia "bento" (Design-Tendenze-Web-Moderne/il-bento-grid...):
+        // stessa griglia per tutti, ma i segnali trending (con spiegazione)
+        // occupano due colonne invece di limitarsi a un blocco uniforme.
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {digest.signals.map((signal) => (
+            <div key={signal.id} className={signal.explanation ? "sm:col-span-2" : ""}>
+              <SignalCard signal={signal} featured={Boolean(signal.explanation)} />
+            </div>
+          ))}
+        </div>
+      )}
+
+      <DigestList digests={altriDigest} />
+    </main>
+  );
+}
