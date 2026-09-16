@@ -19,6 +19,7 @@ async function run(): Promise<void> {
   const rawNews = await fetchAllNews();
   if (rawNews.length === 0) {
     log.error("Nessuna notizia raccolta da nessun feed, digest interrotto");
+    process.exitCode = 1;
     return;
   }
   log.info(`${rawNews.length} articoli raccolti`);
@@ -35,6 +36,19 @@ async function run(): Promise<void> {
     newsItems.map((n) => ({ id: n.id, titolo: n.titolo, estratto: n.estratto, fonte: n.fonte })),
   );
   log.info(`${extracted.length} segnali estratti`);
+
+  if (extracted.length === 0) {
+    // extractSignals ha gia' loggato il motivo esatto (nessun tool_use,
+    // "segnali" mancante/non valido, stop_reason). Senza questo controllo
+    // un digest con 0 segnali usciva con codice 0 come un successo -
+    // scoperto il 2026-09-16 dopo due run reali troncati che sono
+    // sembrati "riusciti" a qualunque controllo basato solo sul codice
+    // di uscita. Con questo, il task pianificato puo' segnalare il
+    // fallimento invece di restare silenzioso.
+    log.error("Nessun segnale estratto da un batch di articoli non vuoto: digest fallito");
+    process.exitCode = 1;
+    return;
+  }
 
   // Digest precedente (se esiste), per calcolare la variazione di menzioni
   // per lo stesso nome+tipo di segnale.

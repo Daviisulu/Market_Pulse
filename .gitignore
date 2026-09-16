@@ -44,6 +44,7 @@ yarn-error.log*
 # log dello script di ingestion
 /ingestion/digest.log
 /scripts/scheduled-run.log
+/scripts/ultimo-esito.txt
 
 # vercel
 .vercel
