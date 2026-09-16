@@ -99,4 +99,17 @@ describe("extractSignals", () => {
 
     expect(result).toEqual([]);
   });
+
+  it("ritorna array vuoto senza lanciare se il tool_use non ha il campo segnali (risposta troncata)", async () => {
+    createMock.mockResolvedValue({
+      stop_reason: "max_tokens",
+      content: [{ type: "tool_use", id: "x", name: "registra_segnali", input: {} }],
+    });
+
+    const result = await extractSignals([
+      { id: "a1", titolo: "T1", estratto: "E1", fonte: "F1" },
+    ]);
+
+    expect(result).toEqual([]);
+  });
 });

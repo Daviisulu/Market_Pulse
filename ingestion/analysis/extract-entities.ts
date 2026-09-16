@@ -110,7 +110,11 @@ export async function extractSignals(
 
   const response = await anthropic.messages.create({
     model: MODELS.extraction,
-    max_tokens: 4096,
+    // Alzato da 4096: con batch vicini a MAX_ARTICLES_PER_CALL la risposta
+    // puo' contenere decine di entita' con piu' menzioni ciascuna, e un
+    // limite troppo stretto rischia di troncare il JSON dello strumento
+    // a meta' (vedi il controllo su stop_reason sotto).
+    max_tokens: 8192,
     tools: [EXTRACTION_TOOL],
     tool_choice: { type: "tool", name: EXTRACTION_TOOL.name },
     messages: [{ role: "user", content: buildPrompt(articles) }],
@@ -124,7 +128,20 @@ export async function extractSignals(
     return [];
   }
 
-  const parsed = toolUse.input as RawExtraction;
+  const parsed = toolUse.input as Partial<RawExtraction>;
+
+  if (!Array.isArray(parsed.segnali)) {
+    // Capita soprattutto su batch grandi: se la risposta viene troncata
+    // prima di completare il JSON dello strumento, il campo richiesto
+    // "segnali" puo' mancare del tutto invece di essere un array vuoto.
+    // Si rinuncia ai segnali di questo digest invece di far crashare
+    // l'intero run - ma si logga lo stop_reason per distinguere un
+    // troncamento reale da un'altra causa, la prossima volta che capita.
+    log.error(
+      `extractSignals: campo "segnali" mancante o non valido (stop_reason: ${response.stop_reason}, articoli: ${articles.length})`,
+    );
+    return [];
+  }
 
   return parsed.segnali
     .filter((s): s is RawExtraction["segnali"][number] & { tipo: SignalType } =>

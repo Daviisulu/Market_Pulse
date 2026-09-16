@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { SignalCard } from "@/components/SignalCard";
-import { SOGLIA_BASSA_ATTIVITA } from "@/lib/soglie";
+import { SOGLIA_BASSA_ATTIVITA, SOGLIA_MENZIONI_MINIME_VISUALIZZAZIONE } from "@/lib/soglie";
 import { eventiMacroPerData } from "@/lib/calendario-macro";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +14,7 @@ export default async function DigestPage(props: PageProps<"/digest/[id]">) {
     where: { id },
     include: {
       signals: {
+        where: { conteggioMenzioni: { gte: SOGLIA_MENZIONI_MINIME_VISUALIZZAZIONE } },
         include: { explanation: true, priceSnapshots: true },
         orderBy: { conteggioMenzioni: "desc" },
       },

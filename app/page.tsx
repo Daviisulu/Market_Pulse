@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { SignalCard } from "@/components/SignalCard";
 import { DigestList } from "@/components/DigestList";
-import { SOGLIA_BASSA_ATTIVITA } from "@/lib/soglie";
+import { SOGLIA_BASSA_ATTIVITA, SOGLIA_MENZIONI_MINIME_VISUALIZZAZIONE } from "@/lib/soglie";
 import { eventiMacroPerData } from "@/lib/calendario-macro";
 
 // Query ogni volta: dashboard personale a basso traffico, la freschezza
@@ -14,6 +14,7 @@ export default async function Home() {
       orderBy: { creatoIl: "desc" },
       include: {
         signals: {
+          where: { conteggioMenzioni: { gte: SOGLIA_MENZIONI_MINIME_VISUALIZZAZIONE } },
           include: { explanation: true, priceSnapshots: true },
           orderBy: { conteggioMenzioni: "desc" },
         },
