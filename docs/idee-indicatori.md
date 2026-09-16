@@ -93,11 +93,12 @@ Quando si decide di implementare un'idea, questo file va aggiornato
 
 ### Calendario di eventi noti — segnalato di interesse dall'utente
 
-**Implementato (parzialmente) il 2026-09-16**: solo la parte macro
-generale (FOMC/CPI/NFP), come banner sulla pagina del digest — non come
-vista aggregata Livello 2 separata come pensato inizialmente qui sotto,
-per evitare di costruire una pagina nuova solo per questo. Vedi
-`lib/calendario-macro.ts`: date reali verificate su
+**Implementato il 2026-09-16**: parte macro generale (FOMC/CPI/NFP), sia
+come banner sulla pagina del digest (evento del giorno) sia come vista a
+sé (`/calendario`, raggiungibile dal pulsante "calendario eventi" nella
+dashboard) — tutti gli eventi 2026-2027 raggruppati per mese, con quello
+di oggi evidenziato. Vedi `lib/calendario-macro.ts` e
+`app/calendario/page.tsx`: date reali verificate su
 federalreserve.gov/bls.gov (non generate), FOMC 2027 marcate
 esplicitamente "tentative" perché non ancora confermate dalla Fed. Da
 aggiornare quando escono nuovi calendari ufficiali.

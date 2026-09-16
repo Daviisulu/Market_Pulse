@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { db } from "@/lib/db";
 import { SignalCard } from "@/components/SignalCard";
 import { DigestList } from "@/components/DigestList";
@@ -42,11 +43,19 @@ export default async function Home() {
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-6 sm:p-8 max-w-5xl mx-auto w-full">
-      <header className="glass rounded-3xl p-6">
-        <h1 className="text-2xl font-semibold">Market Pulse</h1>
-        <p className="text-sm text-current/60">
-          Digest del {new Date(digest.creatoIl).toLocaleString("it-IT")} — {digest.signals.length} segnali
-        </p>
+      <header className="glass rounded-3xl p-6 flex items-baseline justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">Market Pulse</h1>
+          <p className="text-sm text-current/60">
+            Digest del {new Date(digest.creatoIl).toLocaleString("it-IT")} — {digest.signals.length} segnali
+          </p>
+        </div>
+        <Link
+          href="/calendario"
+          className="shrink-0 rounded-full bg-black/[.05] dark:bg-white/[.08] px-3 py-1.5 text-sm hover:bg-black/[.1] dark:hover:bg-white/[.14]"
+        >
+          calendario eventi
+        </Link>
       </header>
 
       {eventiMacroPerData(digest.creatoIl).map((evento) => (
