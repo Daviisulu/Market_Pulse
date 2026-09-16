@@ -25,6 +25,12 @@ export function isTrending({
   if (conteggioMenzioniPrecedente === null || conteggioMenzioniPrecedente === 0) {
     return conteggioMenzioni >= MIN_MENZIONI_NUOVO_SEGNALE;
   }
+  // Stesso minimo assoluto anche qui: senza, una crescita da 1 a 2
+  // menzioni (rumore) supererebbe la soglia tanto quanto una da 20 a 40
+  // (un vero cambiamento di attenzione) — entrambe raddoppiano.
+  if (conteggioMenzioni < MIN_MENZIONI_NUOVO_SEGNALE) {
+    return false;
+  }
   return conteggioMenzioni / conteggioMenzioniPrecedente >= RAPPORTO_CRESCITA_TRENDING;
 }
 

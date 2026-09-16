@@ -77,9 +77,15 @@ market-pulse/
   sentimentMedio, variazioneRispettoAlDigestPrecedente)
 - **Explanation** — spiegazione didattica generata solo per i Signal
   "trending" (id, signalId, testo, modelloUsato)
-- **PriceSnapshot** — prezzo di chiusura giornaliero dell'asset legato a
-  un Signal, raccolto per la validazione futura (id, digestId, ticker,
-  tipo [crypto/azione/indice], prezzoChiusura, data)
+- **PriceSnapshot** — prezzo dell'asset legato a un Signal nel momento in
+  cui gira il digest, raccolto per la validazione futura (id, digestId,
+  ticker, tipo [crypto/azione/indice], prezzoChiusura, data). **Non è
+  sempre un prezzo di "chiusura" in senso stretto** (vedi decisione sulla
+  frequenza sotto: con 3 digest al giorno, solo quello delle 22:00
+  corrisponde a una vera chiusura di mercato USA, gli altri due sono
+  prezzi intraday) — il nome del campo resta `prezzoChiusura` per non
+  aggiungere una migrazione solo per una rinomina, ma va letto come
+  "prezzo al momento della rilevazione".
 
 Relazioni: Digest 1—N NewsItem, Digest 1—N Signal, Signal 1—1
 Explanation (solo trending), Signal 1—N PriceSnapshot.
@@ -98,21 +104,51 @@ Explanation (solo trending), Signal 1—N PriceSnapshot.
 
 ## Ordine di implementazione (Fase 5 della skill)
 
-1. ~~Scaffold + `prisma/schema.prisma` + prima migrazione SQLite~~ (fatto)
-2. `ingestion/sources/news-rss.ts` — raccolta e salvataggio `NewsItem`
-   grezzi (verificabile subito: righe nel DB dopo l'esecuzione)
-3. `ingestion/analysis/extract-entities.ts` — `NewsItem` → `Signal`
-   (entità + sentiment via Claude Haiku)
-4. `ingestion/sources/price-crypto.ts` + `price-stocks.ts` — arricchisce
-   i Signal con `PriceSnapshot`
-5. `ingestion/analysis/explain-trending.ts` — `Explanation` solo per i
-   Signal sopra una soglia di "trending" (soglia esatta da definire in
-   implementazione, es. variazione menzioni vs digest precedente)
-6. `run-digest.ts` — orchestratore degli step 2-5, con logging
-7. Dashboard Next.js: vista digest più recente, poi storico digest
-8. Test Vitest: parsing RSS (con fixture) e logica di trending (pura,
-   facilmente testabile) — le chiamate Claude/API esterne si mockano,
-   non si testano dal vivo nella suite automatica
+Tutti gli 8 step completati (step 4-8 svolti su un altro dispositivo il
+2026-09-15, senza accesso alla skill `/crea-app` — non sincronizzata dal
+vault — ma seguendo questo stesso piano; revisionati e verificati di
+persona il 2026-09-16: 28/28 test, tsc/lint/build puliti).
+
+1. ~~Scaffold + `prisma/schema.prisma` + prima migrazione SQLite~~
+2. ~~`ingestion/sources/news-rss.ts`~~
+3. ~~`ingestion/analysis/extract-entities.ts`~~
+4. ~~`ingestion/sources/price-crypto.ts` + `price-stocks.ts`~~
+5. ~~`ingestion/analysis/explain-trending.ts` + `ingestion/analysis/trending.ts`~~
+   (soglia di "trending" isolata in un modulo puro, non previsto nel piano
+   originale come file a sé — vedi "Decisione sulla frequenza" sotto)
+6. ~~`run-digest.ts`~~ — orchestratore di tutti gli step sopra
+7. ~~Dashboard Next.js~~ — vista digest più recente + storico, restyling
+   con Glassmorphism/Bento grid dal vault (vedi
+   `docs/sessione-2026-09-15-fasi-4-7.md`)
+8. ~~Test Vitest~~ — 28 test, 6 file, nessuna chiamata di rete/Claude reale
+   nella suite automatica
+
+## Decisione sulla frequenza del digest (2026-09-16)
+
+**3 digest al giorno, solo lun-ven, orari Italia**:
+
+- **08:00** — copre la notte, i mercati asiatici, l'attività crypto
+  overnight
+- **12:00** — mercati europei già aperti, polso di metà giornata
+- **22:00** — chiusura NYSE/Nasdaq (16:00 ET, coincide quasi sempre con
+  le 22:00 italiane; scarto di un'ora nelle ~2 settimane l'anno in cui UE
+  e USA non sono ancora allineate sul cambio ora legale)
+
+Weekend saltati: i mercati tradizionali sono chiusi, e anche il crypto
+(tecnicamente 24/7) ha un calo forte di copertura editoriale il weekend
+— non vale la complessità di gestirlo diversamente per ora.
+
+**Due conseguenze pratiche, non ancora risolte nel codice**:
+
+- Le finestre tra un digest e il successivo non sono uguali (08→12 = 4h,
+  12→22 e 22→08 = 10h ciascuna): confrontare `conteggioMenzioni` tra
+  digest consecutivi non è mai un confronto a parità di finestra
+  temporale. Motivo in più, insieme all'idea "share of voice" già in
+  `docs/idee-indicatori.md`, per non affezionarsi alle soglie numeriche
+  assolute attuali di `trending.ts` — restano "da ricalibrare quando c'è
+  storico reale" (commento già presente nel file).
+- Solo il digest delle 22:00 produce un vero `PriceSnapshot` di
+  "chiusura" in senso stretto — vedi nota sul modello dati sopra.
 
 ## Cosa NON è in questa prima versione
 
@@ -123,13 +159,17 @@ segnale, autenticazione/multi-utente, tempo reale, notifiche.
 
 ## Verifica end-to-end
 
-- `npm run digest` in locale produce righe nuove nel DB SQLite
-  (verificabile con Prisma Studio o una query diretta)
-- `npm run dev` avvia la dashboard, che mostra il digest più recente con
-  almeno un Signal e la sua spiegazione
-- Suite Vitest verde su parsing RSS e logica di trending
+- ~~`npm run digest` in locale produce righe nuove nel DB SQLite~~ —
+  verificato il 2026-09-15 con una chiamata reale (15 articoli → 24
+  Signal estratti, categorie/sentiment plausibili)
+- `npm run dev` avvia la dashboard — verificato via screenshot Playwright
+  su dati finti (rimossi subito dopo), non ancora su un digest reale
+  completo
+- Suite Vitest verde su parsing RSS e logica di trending (28/28 test)
 - Nessun segreto committato: `.env` in `.gitignore`, solo `.env.example`
   versionato
+- **Non ancora verificato**: un run reale completo di `npm run digest`
+  con i 3 orari programmati su Task Scheduler (vedi sotto)
 
 ## Note emerse durante lo scaffold (Fase 4)
 

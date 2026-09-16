@@ -68,9 +68,13 @@ model Explanation {
   modelloUsato String
 }
 
-// Prezzo di chiusura giornaliero dell'asset legato a un Signal,
-// raccolto in parallelo per poter validare più avanti quanto i Signal
-// anticipano davvero un movimento di mercato reale.
+// Prezzo dell'asset legato a un Signal nel momento in cui gira il
+// digest, raccolto in parallelo per poter validare più avanti quanto i
+// Signal anticipano davvero un movimento di mercato reale. Il campo si
+// chiama prezzoChiusura ma NON è sempre una chiusura di mercato in
+// senso stretto: con 3 digest al giorno (08:00/12:00/22:00, vedi
+// docs/piano-architettura.md) solo quello delle 22:00 coincide con la
+// chiusura NYSE/Nasdaq, gli altri due sono prezzi intraday.
 model PriceSnapshot {
   id             String   @id @default(cuid())
   digestId       String
