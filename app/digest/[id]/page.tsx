@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { SignalCard } from "@/components/SignalCard";
 import { SOGLIA_BASSA_ATTIVITA, SOGLIA_MENZIONI_MINIME_VISUALIZZAZIONE } from "@/lib/soglie";
 import { eventiMacroPerData } from "@/lib/calendario-macro";
+import { isInWatchlist, ordinaConWatchlistInCima } from "@/lib/watchlist";
 
 export const dynamic = "force-dynamic";
 
@@ -63,9 +64,13 @@ export default async function DigestPage(props: PageProps<"/digest/[id]">) {
             </p>
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {digest.signals.map((signal) => (
+            {ordinaConWatchlistInCima(digest.signals).map((signal) => (
               <div key={signal.id} className={signal.explanation ? "sm:col-span-2" : ""}>
-                <SignalCard signal={signal} featured={Boolean(signal.explanation)} />
+                <SignalCard
+                  signal={signal}
+                  featured={Boolean(signal.explanation)}
+                  inWatchlist={isInWatchlist(signal.nome)}
+                />
               </div>
             ))}
           </div>

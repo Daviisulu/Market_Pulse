@@ -4,6 +4,7 @@ import { SignalCard } from "@/components/SignalCard";
 import { DigestList } from "@/components/DigestList";
 import { SOGLIA_BASSA_ATTIVITA, SOGLIA_MENZIONI_MINIME_VISUALIZZAZIONE } from "@/lib/soglie";
 import { eventiMacroPerData } from "@/lib/calendario-macro";
+import { isInWatchlist, ordinaConWatchlistInCima } from "@/lib/watchlist";
 
 // Query ogni volta: dashboard personale a basso traffico, la freschezza
 // del digest più recente conta più della cache statica.
@@ -84,9 +85,13 @@ export default async function Home() {
           stessa griglia per tutti, ma i segnali trending (con spiegazione)
           occupano due colonne invece di limitarsi a un blocco uniforme. */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {digest.signals.map((signal) => (
+            {ordinaConWatchlistInCima(digest.signals).map((signal) => (
               <div key={signal.id} className={signal.explanation ? "sm:col-span-2" : ""}>
-                <SignalCard signal={signal} featured={Boolean(signal.explanation)} />
+                <SignalCard
+                  signal={signal}
+                  featured={Boolean(signal.explanation)}
+                  inWatchlist={isInWatchlist(signal.nome)}
+                />
               </div>
             ))}
           </div>

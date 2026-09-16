@@ -47,13 +47,19 @@ Quando si decide di implementare un'idea, questo file va aggiornato
   2026-09-16**, soglia `SOGLIA_BASSA_ATTIVITA` in `lib/soglie.ts`
   (arbitraria, da ricalibrare con storico reale, come le soglie di
   trending).
-- [ ] **Watchlist personale** — asset/aziende marcati per restare
-  sempre in cima indipendentemente dal trending. Personalizzazione su
-  cosa conta per l'utente, invece di più indicatori uguali per tutti.
-- [ ] **Volume di scambio reale accanto al prezzo** — CoinGecko e Yahoo
-  Finance lo restituiscono già nelle stesse chiamate usate per il
-  prezzo (`include_24hr_vol` / `regularMarketVolume`): non è un nuovo
-  widget, è un campo in più sulla riga prezzo già esistente.
+- [x] **Watchlist personale** — **implementato il 2026-09-16** come
+  `lib/watchlist.ts`, lista curata modificabile a mano (nessuna UI di
+  gestione, nessuna tabella DB — corrispondenza per nome, calcolata a
+  ogni visualizzazione così vale anche sui digest passati). Set
+  iniziale "i principali asset" (richiesta esplicita, non preferenze
+  specifiche): Bitcoin, Ethereum, S&P 500, Nasdaq, Dow Jones, Nvidia,
+  Apple, Microsoft. Verificato visivamente che l'ordinamento funziona
+  davvero (un asset in watchlist con poche menzioni precede uno fuori
+  watchlist con molte più menzioni).
+- [x] **Volume di scambio reale accanto al prezzo** — **implementato il
+  2026-09-16** come `PriceSnapshot.volume` (opzionale), letto dalla
+  stessa chiamata già fatta per il prezzo (`usd_24h_vol` su CoinGecko,
+  `regularMarketVolume` su Yahoo Finance) — nessuna fonte dati nuova.
 
 ## Livello 2 — vista aggregata separata (settimanale/mensile)
 
@@ -184,6 +190,14 @@ di guardare i numeri.
   geopolitico una volta che esiste il rollup geografico (Livello 2).
 
 ## Ultimo aggiornamento
+
+2026-09-16 (quarta modifica) — implementate le ultime 2 idee del
+Livello 1: volume di scambio (campo in più sulla stessa chiamata prezzo
+già esistente) e watchlist personale (lista curata in `lib/watchlist.ts`,
+set iniziale gli 8 "principali asset"). **Livello 1 completo**: tutte le
+idee di questa sezione sono ora implementate. Calendario esteso da
+banner a sezione a sé (`/calendario`) su richiesta esplicita
+dell'utente dopo aver visto la prima versione.
 
 2026-09-16 (seconda modifica) — implementate altre 3 idee: badge
 "nuovo" (con il raffinamento incluso da subito), etichetta "giornata a

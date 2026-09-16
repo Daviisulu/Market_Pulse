@@ -23,9 +23,11 @@ const formatVolume = new Intl.NumberFormat("it-IT", {
 export function SignalCard({
   signal,
   featured = false,
+  inWatchlist = false,
 }: {
   signal: SignalWithRelations;
   featured?: boolean;
+  inWatchlist?: boolean;
 }) {
   const prezzo = signal.priceSnapshots.at(-1);
   const variazione = signal.variazioneRispettoAlDigestPrecedente;
@@ -39,6 +41,11 @@ export function SignalCard({
     >
       <header className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2 flex-wrap">
+          {inWatchlist && (
+            <span className="text-current/50" title="Nella tua watchlist" aria-hidden>
+              ★
+            </span>
+          )}
           <h3 className={featured ? "text-xl font-semibold" : "text-lg font-semibold"}>
             {signal.nome}
           </h3>
