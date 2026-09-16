@@ -187,3 +187,48 @@ segnale, autenticazione/multi-utente, tempo reale, notifiche.
   usa solo SQLite), non nel codice eseguito in produzione/runtime
   dell'app. Risolverle richiederebbe un downgrade a Prisma 6.x, una
   regressione non giustificata per un progetto locale a singolo utente.
+
+## Congelamento feature fino al 2026-09-23
+
+Decisione esplicita dell'utente il 2026-09-16, dopo una valutazione
+onesta dello stato del progetto: **2 dei 4 digest reali tentati oggi
+sono falliti** (risposta Claude troncata, 0 segnali). Troppe feature
+di analisi (HHI, attenzione/capitalizzazione, watchlist, sintesi
+narrativa...) erano state costruite sopra una pipeline che non aveva
+ancora dimostrato di reggere da sola. Il backlog in
+`docs/idee-indicatori.md` resta congelato fino al 2026-09-23 — nessuna
+nuova feature/indicatore prima di quella data, indipendentemente da
+quali idee sembrano buone nel frattempo.
+
+Nel periodo di congelamento, il lavoro deve concentrarsi su affidabilità
+operativa, non su nuove analisi:
+
+- **Fatto il 2026-09-16**: un digest con 0 segnali (Claude troncato,
+  o nessuna notizia raccolta) ora esce con codice 1 invece di 0 — prima
+  usciva come un successo, invisibile a qualunque controllo automatico.
+  Aggiunta una notifica toast Windows nativa (`scripts/notifica-esito-digest.ps1`,
+  chiamata da `run-digest-scheduled.bat`) che segnala un fallimento senza
+  dover controllare `scheduled-run.log` a mano, più un file di stato
+  sempre aggiornato (`scripts/ultimo-esito.txt`, non versionato).
+- **Fatto il 2026-09-16**: diagnosticato (non solo aggirato) il problema
+  dello schema-engine Prisma su questo dispositivo ("spawn UNKNOWN" su
+  Node 24/Windows per un sottocomando specifico — il binario stesso
+  funziona perfettamente se lanciato direttamente, verosimilmente un
+  antivirus che doveva "fidarsi" del file la prima volta). Riconciliata
+  la tabella `_prisma_migrations` con `prisma migrate resolve --applied`
+  per le migrazioni applicate a mano nei giorni scorsi — `prisma migrate
+  status` ora conferma lo schema allineato, non serve più applicare SQL
+  a mano ad ogni nuova migrazione.
+- **Da tenere d'occhio nel periodo di congelamento**: se il problema
+  dello schema-engine si ripresenta (es. dopo un riavvio, o su un
+  antivirus che dimentica la "fiducia" accordata), il sintomo è
+  "spawn UNKNOWN" e la diagnosi rapida è: lanciare
+  `./node_modules/@prisma/engines/schema-engine-windows.exe --help`
+  direttamente — se funziona, il binario è sano e il problema è nello
+  spawn di Node/nell'antivirus, non nel Prisma Client generato.
+
+**Alla riapertura (dal 2026-09-23)**: rivalutare il backlog con lo
+storico reale accumulato nel frattempo (attesi ~30 digest con 3
+run/giorno lun-ven), non a priori — diverse idee di Livello 2/3 (market
+mood nel tempo, tasso di successo dei segnali trending, correlazioni)
+diventano costruibili solo a quel punto.
