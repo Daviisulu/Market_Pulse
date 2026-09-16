@@ -1,3 +1,5 @@
+import type { SignalType } from "./types";
+
 // Soglie di presentazione condivise tra le pagine della dashboard.
 // Valori scelti a giudizio, senza storico reale su cui calibrarli —
 // stessa cautela già applicata alle soglie di trending (vedi
@@ -22,3 +24,13 @@ export const SOGLIA_MENZIONI_MINIME_VISUALIZZAZIONE = 2;
 // corrisponde a una deviazione standard di 0.5, uno scarto tipico tra
 // le menzioni non trascurabile rispetto al range possibile.
 export const SOGLIA_SENTIMENT_CONTRASTANTE = 0.25;
+
+// Sotto questa quota di attenzione (menzioni / totale articoli del
+// digest), un asset/azienda/tema è probabilmente irrilevante — non si
+// applica a settore/paese (TIPI_CON_SOGLIA_QUOTA sotto): sono categorie
+// più ampie per natura, dove una quota bassa non significa la stessa
+// cosa di un'entità nominata con pochissima attenzione relativa. Come
+// SOGLIA_MENZIONI_MINIME_VISUALIZZAZIONE, nasconde dalla dashboard senza
+// cancellare dal DB — restano dati disponibili per aggregazioni future.
+export const SOGLIA_QUOTA_ATTENZIONE_MINIMA_ENTITA = 0.02;
+export const TIPI_CON_SOGLIA_QUOTA: SignalType[] = ["asset", "azienda", "tema"];

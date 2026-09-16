@@ -1,5 +1,5 @@
 import type Anthropic from "@anthropic-ai/sdk";
-import { anthropic, MODELS } from "../../lib/anthropic";
+import { anthropic, MODELS, stimaCosto } from "../../lib/anthropic";
 import { SIGNAL_TYPES, type SignalType } from "../../lib/types";
 import { calcolaVarianzaSentiment } from "../../lib/dispersione-sentiment";
 import { log } from "../log";
@@ -139,15 +139,24 @@ export async function extractSignals(
 
   const response = await anthropic.messages.create({
     model: MODELS.extraction,
-    // Alzato da 4096: con batch vicini a MAX_ARTICLES_PER_CALL la risposta
-    // puo' contenere decine di entita' con piu' menzioni ciascuna, e un
-    // limite troppo stretto rischia di troncare il JSON dello strumento
-    // a meta' (vedi il controllo su stop_reason sotto).
-    max_tokens: 8192,
+    // Storia: 4096 -> troncava con batch reali (stop_reason: max_tokens,
+    // "segnali" mancante). Alzato a 8192 -> troncava ANCORA con lo stesso
+    // batch di 105 articoli (verificato dal vivo il 2026-09-16, stessa
+    // causa: 0 segnali estratti, $0.048 spesi per nulla). 16000 e' anche
+    // il default raccomandato per chiamate non-streaming. Se dovesse
+    // troncare di nuovo a questo livello, la soluzione vera e' dividere
+    // il batch in chunk piu' piccoli con merge dei risultati (non
+    // implementato, vedi MAX_ARTICLES_PER_CALL sopra), non alzare ancora.
+    max_tokens: 16000,
     tools: [EXTRACTION_TOOL],
     tool_choice: { type: "tool", name: EXTRACTION_TOOL.name },
     messages: [{ role: "user", content: buildPrompt(articles) }],
   });
+
+  const costo = stimaCosto(MODELS.extraction, response.usage);
+  log.info(
+    `extractSignals: ${response.usage.input_tokens} input + ${response.usage.output_tokens} output token (Haiku) — stima $${costo.toFixed(4)}`,
+  );
 
   const toolUse = response.content.find(
     (block): block is Anthropic.ToolUseBlock => block.type === "tool_use",

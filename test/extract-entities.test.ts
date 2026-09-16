@@ -17,6 +17,7 @@ const { extractSignals } = await import(
 
 function toolUseResponse(segnali: unknown) {
   return {
+    usage: { input_tokens: 100, output_tokens: 50 },
     content: [
       { type: "tool_use", id: "x", name: "registra_segnali", input: { segnali } },
     ],
@@ -93,6 +94,7 @@ describe("extractSignals", () => {
 
   it("ritorna array vuoto se la risposta non contiene un blocco tool_use", async () => {
     createMock.mockResolvedValue({
+      usage: { input_tokens: 100, output_tokens: 50 },
       content: [{ type: "text", text: "niente tool qui" }],
     });
 
@@ -106,6 +108,7 @@ describe("extractSignals", () => {
   it("ritorna array vuoto senza lanciare se il tool_use non ha il campo segnali (risposta troncata)", async () => {
     createMock.mockResolvedValue({
       stop_reason: "max_tokens",
+      usage: { input_tokens: 100, output_tokens: 50 },
       content: [{ type: "tool_use", id: "x", name: "registra_segnali", input: {} }],
     });
 

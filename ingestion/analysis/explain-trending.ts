@@ -1,6 +1,7 @@
 import type Anthropic from "@anthropic-ai/sdk";
-import { anthropic, MODELS } from "../../lib/anthropic";
+import { anthropic, MODELS, stimaCosto } from "../../lib/anthropic";
 import type { SignalType } from "../../lib/types";
+import { log } from "../log";
 
 export interface ArticoloPerSpiegazione {
   titolo: string;
@@ -52,6 +53,11 @@ export async function explainTrendingSignal(
     max_tokens: 400,
     messages: [{ role: "user", content: buildPrompt(signal) }],
   });
+
+  const costo = stimaCosto(MODELS.explanation, response.usage);
+  log.info(
+    `explainTrendingSignal "${signal.nome}": ${response.usage.input_tokens} input + ${response.usage.output_tokens} output token (Sonnet) — stima $${costo.toFixed(4)}`,
+  );
 
   const textBlock = response.content.find(
     (block): block is Anthropic.TextBlock => block.type === "text",
