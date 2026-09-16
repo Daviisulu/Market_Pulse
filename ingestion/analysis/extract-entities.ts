@@ -87,12 +87,39 @@ function buildPrompt(articles: NewsItemForExtraction[]): string {
   );
 }
 
-interface RawExtraction {
-  segnali: {
-    tipo: string;
-    nome: string;
-    menzioni: { indiceArticolo: number; sentiment: number }[];
-  }[];
+interface RawMenzione {
+  indiceArticolo: number;
+  sentiment: number;
+}
+
+interface RawSegnale {
+  tipo: string;
+  nome: string;
+  menzioni: RawMenzione[];
+}
+
+// Il cast "as" su toolUse.input non e' verificato a runtime: una risposta
+// troncata puo' restituire un array "segnali" sintatticamente valido con
+// dentro elementi mancanti di campi (vedi il crash gia' capitato e
+// corretto su "segnali" mancante del tutto — questo copre il caso in cui
+// e' presente ma incompleto). Senza questi controlli, un elemento con
+// "menzioni" assente farebbe fallire .map() piu' sotto.
+function isMenzioneValida(m: unknown): m is RawMenzione {
+  if (typeof m !== "object" || m === null) return false;
+  const c = m as Record<string, unknown>;
+  return typeof c.indiceArticolo === "number" && typeof c.sentiment === "number";
+}
+
+function isSegnaleValido(s: unknown): s is RawSegnale {
+  if (typeof s !== "object" || s === null) return false;
+  const c = s as Record<string, unknown>;
+  return (
+    typeof c.nome === "string" &&
+    c.nome.length > 0 &&
+    typeof c.tipo === "string" &&
+    Array.isArray(c.menzioni) &&
+    c.menzioni.every(isMenzioneValida)
+  );
 }
 
 export async function extractSignals(
@@ -128,7 +155,7 @@ export async function extractSignals(
     return [];
   }
 
-  const parsed = toolUse.input as Partial<RawExtraction>;
+  const parsed = toolUse.input as { segnali?: unknown };
 
   if (!Array.isArray(parsed.segnali)) {
     // Capita soprattutto su batch grandi: se la risposta viene troncata
@@ -143,8 +170,15 @@ export async function extractSignals(
     return [];
   }
 
-  return parsed.segnali
-    .filter((s): s is RawExtraction["segnali"][number] & { tipo: SignalType } =>
+  const segnaliValidi = parsed.segnali.filter(isSegnaleValido);
+  if (segnaliValidi.length < parsed.segnali.length) {
+    log.error(
+      `extractSignals: ${parsed.segnali.length - segnaliValidi.length} segnale/i scartati per forma non valida (stop_reason: ${response.stop_reason})`,
+    );
+  }
+
+  return segnaliValidi
+    .filter((s): s is RawSegnale & { tipo: SignalType } =>
       (SIGNAL_TYPES as readonly string[]).includes(s.tipo),
     )
     .map((s) => {

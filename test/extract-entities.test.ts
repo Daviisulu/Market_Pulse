@@ -112,4 +112,42 @@ describe("extractSignals", () => {
 
     expect(result).toEqual([]);
   });
+
+  it("scarta senza lanciare un elemento malformato dentro un array 'segnali' altrimenti valido", async () => {
+    // Simula un troncamento a meta' che lascia un ultimo elemento
+    // incompleto invece di far mancare "segnali" del tutto: il campo
+    // "menzioni" e' assente su un segnale, presente e valido sull'altro.
+    createMock.mockResolvedValue(
+      toolUseResponse([
+        { tipo: "asset", nome: "Bitcoin", menzioni: [{ indiceArticolo: 0, sentiment: 0.5 }] },
+        { tipo: "azienda", nome: "Nvidia" },
+      ]),
+    );
+
+    const result = await extractSignals([
+      { id: "a1", titolo: "T1", estratto: "E1", fonte: "F1" },
+    ]);
+
+    expect(result).toEqual([
+      { tipo: "asset", nome: "Bitcoin", conteggioMenzioni: 1, sentimentMedio: 0.5, newsItemIds: ["a1"] },
+    ]);
+  });
+
+  it("scarta un segnale con un elemento di 'menzioni' senza sentiment numerico", async () => {
+    createMock.mockResolvedValue(
+      toolUseResponse([
+        {
+          tipo: "asset",
+          nome: "Bitcoin",
+          menzioni: [{ indiceArticolo: 0 }],
+        },
+      ]),
+    );
+
+    const result = await extractSignals([
+      { id: "a1", titolo: "T1", estratto: "E1", fonte: "F1" },
+    ]);
+
+    expect(result).toEqual([]);
+  });
 });
