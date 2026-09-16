@@ -126,15 +126,23 @@ di guardare i numeri.
 
 ## Idea di presentazione, non un indicatore
 
-- [ ] **Digest come "changelog" invece che come lista di card** — invece
-  di continuare ad aggiungere campi a ogni card, una sezione narrativa
-  in cima al digest tipo "cosa è cambiato da ieri" (nuovi entranti,
-  segnali usciti dal radar, il mover più grande) potrebbe assorbire
-  diversi degli indicatori di questo file senza aggiungere altre righe
-  alla card — l'informazione in più vive in un testo di sintesi, non in
-  un campo numerico ripetuto ovunque. Risponde direttamente al rischio
-  di card confusionaria: non è un'idea da mettere in coda alle altre, è
-  un'alternativa architetturale a come vengono presentate.
+- [x] **Digest come "changelog" invece che come lista di card** —
+  **implementato il 2026-09-16** come `lib/sintesi.ts`
+  (`sintetizzaDigest`), su richiesta esplicita dell'utente dopo aver
+  chiesto "cosa può rendere meglio l'idea di cosa sta succedendo al
+  mercato". Testo generato da template (nessuna chiamata Claude, tutti
+  i dati sono già nel DB), non da LLM: tema principale per quota di
+  attenzione (non conteggio grezzo), sentiment generale come media
+  pesata per menzioni, nuovi segnali comparsi, maggior crescita di
+  attenzione. In cima a entrambe le pagine digest (recente e storico).
+  **Nota di scope importante**: l'utente ha chiesto anche qualcosa di
+  più ambizioso — capire "cosa sta per succedere" incrociando prezzi e
+  notizie (previsione, non solo descrizione) — deliberatamente NON
+  implementato ora: con 1-2 digest reali non c'è storico sufficiente
+  per validare un indicatore predittivo, sarebbe rumore spacciato per
+  segnale (vedi Livello 3 sotto e il rischio di multiple testing bias
+  già segnalato da `Trading/` nel vault). Da riprendere quando c'è
+  storico reale.
 
 ## Livello 3 — calcolato e salvato, non mostrato in UI per ora
 
@@ -190,6 +198,13 @@ di guardare i numeri.
   geopolitico una volta che esiste il rollup geografico (Livello 2).
 
 ## Ultimo aggiornamento
+
+2026-09-16 (quinta modifica) — implementata la sintesi narrativa
+("digest come changelog"), l'idea di presentazione segnalata come
+"alternativa architetturale". Deliberatamente NON implementato un
+incrocio prezzi/notizie predittivo richiesto nella stessa
+conversazione — manca lo storico per validarlo, vedi la voce sopra per
+il ragionamento completo.
 
 2026-09-16 (quarta modifica) — implementate le ultime 2 idee del
 Livello 1: volume di scambio (campo in più sulla stessa chiamata prezzo

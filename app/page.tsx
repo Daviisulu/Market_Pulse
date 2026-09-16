@@ -5,6 +5,7 @@ import { DigestList } from "@/components/DigestList";
 import { SOGLIA_BASSA_ATTIVITA, SOGLIA_MENZIONI_MINIME_VISUALIZZAZIONE } from "@/lib/soglie";
 import { eventiMacroPerData } from "@/lib/calendario-macro";
 import { isInWatchlist, ordinaConWatchlistInCima } from "@/lib/watchlist";
+import { sintetizzaDigest } from "@/lib/sintesi";
 
 // Query ogni volta: dashboard personale a basso traffico, la freschezza
 // del digest più recente conta più della cache statica.
@@ -42,6 +43,8 @@ export default async function Home() {
     );
   }
 
+  const sintesi = sintetizzaDigest(digest.signals);
+
   return (
     <main className="flex flex-1 flex-col gap-6 p-6 sm:p-8 max-w-5xl mx-auto w-full">
       <header className="glass rounded-3xl p-6 flex items-baseline justify-between gap-3">
@@ -58,6 +61,10 @@ export default async function Home() {
           calendario eventi
         </Link>
       </header>
+
+      {sintesi && (
+        <p className="glass rounded-3xl p-5 text-[15px] leading-relaxed">{sintesi}</p>
+      )}
 
       {eventiMacroPerData(digest.creatoIl).map((evento) => (
         <p
