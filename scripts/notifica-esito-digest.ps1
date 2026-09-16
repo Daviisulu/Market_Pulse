@@ -9,9 +9,17 @@
 # script e' il secondo pezzo, che rende visibile il fallimento senza
 # dover controllare nulla attivamente.
 #
-# Nessuna dipendenza esterna (niente BurntToast, non installato su
-# questo dispositivo): usa l'API toast nativa di Windows 10/11, gia'
-# presente su qualunque installazione.
+# Nota tecnica su un tentativo fallito: la prima versione usava l'API
+# toast moderna (Windows.UI.Notifications.ToastNotificationManager).
+# Verificato dal vivo il 2026-09-16 che NON funziona chiamata da
+# powershell.exe nudo: quell'API richiede un'identita' applicativa
+# (AUMID) registrata, che uno script semplice non ha - il risultato e'
+# un fallimento silenzioso (nessun errore, nessuna eccezione, ma la
+# notifica non compare da nessuna parte, nemmeno nell'elenco app di
+# Impostazioni > Notifiche). Sostituita con il balloon tip della system
+# tray (System.Windows.Forms.NotifyIcon), un'API piu' vecchia che non
+# richiede quella registrazione - testata dal vivo con l'utente davanti
+# allo schermo, confermata visibile.
 param(
     [Parameter(Mandatory = $true)]
     [ValidateSet("OK", "FALLITO")]
@@ -32,29 +40,27 @@ $riga | Out-File -FilePath $statusFile -Encoding utf8
 
 if ($Esito -eq "FALLITO") {
     try {
-        [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null
-        [Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom.XmlDocument, ContentType = WindowsRuntime] | Out-Null
+        Add-Type -AssemblyName System.Windows.Forms
+        Add-Type -AssemblyName System.Drawing
 
-        $testoDettaglio = if ($Dettaglio) { "$timestamp - $Dettaglio" } else { $timestamp }
-        $template = @"
-<toast>
-  <visual>
-    <binding template="ToastGeneric">
-      <text>Market Pulse - digest fallito</text>
-      <text>$testoDettaglio</text>
-    </binding>
-  </visual>
-</toast>
-"@
-        $xml = New-Object Windows.Data.Xml.Dom.XmlDocument
-        $xml.LoadXml($template)
-        $toast = New-Object Windows.UI.Notifications.ToastNotification $xml
-        [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier("Market Pulse").Show($toast)
+        $icon = New-Object System.Windows.Forms.NotifyIcon
+        $icon.Icon = [System.Drawing.SystemIcons]::Warning
+        $icon.Visible = $true
+        $icon.BalloonTipTitle = "Market Pulse - digest fallito"
+        $icon.BalloonTipText = if ($Dettaglio) { "$timestamp - $Dettaglio" } else { $timestamp }
+        $icon.ShowBalloonTip(15000)
+
+        # L'icona deve restare viva perche' il balloon si veda davvero:
+        # se lo script termina subito, .NET la distrugge insieme al
+        # balloon prima che compaia. 6 secondi bastano a renderlo
+        # visibile senza allungare troppo il run schedulato.
+        Start-Sleep -Seconds 6
+        $icon.Dispose()
     }
     catch {
-        # Se il toast non parte (raro, ma possibile su alcune
-        # configurazioni), il file di stato resta comunque la fonte di
-        # verita' - non far fallire lo script batch per questo.
-        Write-Output "Toast non mostrato: $_"
+        # Se il balloon non parte per qualche motivo, il file di stato
+        # resta comunque la fonte di verita' - non far fallire lo script
+        # batch per questo.
+        Write-Output "Notifica non mostrata: $_"
     }
 }
