@@ -1,6 +1,6 @@
 import type { Explanation, PriceSnapshot, Signal } from "@/generated/prisma/client";
 
-type SignalWithRelations = Signal & {
+export type SignalWithRelations = Signal & {
   explanation: Explanation | null;
   priceSnapshots: PriceSnapshot[];
 };
@@ -42,7 +42,12 @@ export function SignalCard({
       <header className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2 flex-wrap">
           {inWatchlist && (
-            <span className="text-current/50" title="Nella tua watchlist" aria-hidden>
+            <span
+              className="text-current/50"
+              role="img"
+              aria-label="Nella tua watchlist"
+              title="Nella tua watchlist"
+            >
               ★
             </span>
           )}
