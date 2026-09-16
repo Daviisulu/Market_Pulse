@@ -100,9 +100,14 @@ Quando si decide di implementare un'idea, questo file va aggiornato
 - [ ] **Durata media dell'attenzione** — quanti digest consecutivi
   un'entità resta rilevante prima di sparire, per capire se un picco è
   un lampo isolato o un trend che dura.
-- [ ] **Dispersione/varianza del sentiment**, non solo la media — un
-  Signal con metà articoli molto positivi e metà molto negativi è
-  diverso da uno uniformemente neutro, anche a sentiment medio uguale.
+- [x] **Dispersione/varianza del sentiment**, non solo la media —
+  **implementato il 2026-09-16** come `Signal.sentimentVarianza`
+  (opzionale: righe precedenti a questo campo non hanno le menzioni
+  individuali per ricalcolarlo), varianza di popolazione calcolata in
+  `lib/dispersione-sentiment.ts` all'estrazione (stessi dati già usati
+  per `sentimentMedio`, nessuna chiamata Claude in più). Badge "sentiment
+  contrastante" sulla card solo sopra `SOGLIA_SENTIMENT_CONTRASTANTE`
+  (`lib/soglie.ts`), non su ogni segnale.
 - [x] **Indice di concentrazione del digest** (tipo Herfindahl) —
   **implementato il 2026-09-16** in `lib/concentrazione.ts`: HHI
   normalizzato per il numero di segnali (confrontabile tra digest con un
@@ -223,6 +228,18 @@ di guardare i numeri.
   geopolitico una volta che esiste il rollup geografico (Livello 2).
 
 ## Ultimo aggiornamento
+
+2026-09-16 (nona modifica) — implementata la dispersione/varianza del
+sentiment (`Signal.sentimentVarianza`, `lib/dispersione-sentiment.ts`),
+ultima voce di Livello 2 calcolabile su un solo digest. Nota tecnica
+sulla migration: il primo tentativo la rendeva un campo obbligatorio,
+scoperto — prima del push — che avrebbe rotto il DB reale sul portatile
+al prossimo `git pull` (righe Signal esistenti senza valore per un campo
+NOT NULL su SQLite). Corretto rendendolo opzionale, come già
+`variazioneRispettoAlDigestPrecedente`. Anche il layout della dashboard è
+stato rivisto in questa sessione (non un indicatore, ma cambia dove/come
+si vedono): 3 zone (contesto a sinistra, segnali al centro, approfondimenti
+a destra), sintesi con indicatori come chip invece di frasi impilate.
 
 2026-09-16 (ottava modifica) — implementati 4 indicatori di Livello 2 in
 forma ridotta a singolo digest (non vista aggregata settimanale/mensile

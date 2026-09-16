@@ -1,6 +1,7 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { anthropic, MODELS } from "../../lib/anthropic";
 import { SIGNAL_TYPES, type SignalType } from "../../lib/types";
+import { calcolaVarianzaSentiment } from "../../lib/dispersione-sentiment";
 import { log } from "../log";
 
 export interface NewsItemForExtraction {
@@ -15,6 +16,7 @@ export interface ExtractedSignal {
   nome: string;
   conteggioMenzioni: number;
   sentimentMedio: number;
+  sentimentVarianza: number;
   newsItemIds: string[];
 }
 
@@ -196,6 +198,7 @@ export async function extractSignals(
         nome: s.nome,
         conteggioMenzioni: newsItemIds.length,
         sentimentMedio,
+        sentimentVarianza: calcolaVarianzaSentiment(sentiments),
         newsItemIds,
       };
     })

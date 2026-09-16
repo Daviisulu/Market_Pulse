@@ -15,3 +15,10 @@ export const SOGLIA_BASSA_ATTIVITA = 5;
 // soglia di trending in ingestion/analysis/trending.ts: quella decide
 // chi riceve una spiegazione, questa solo cosa compare in dashboard.
 export const SOGLIA_MENZIONI_MINIME_VISUALIZZAZIONE = 2;
+
+// Varianza di popolazione del sentiment (lib/dispersione-sentiment.ts,
+// valori dei singoli sentiment in -1..1) sopra cui un Signal è
+// etichettato "sentiment contrastante" invece di uniforme — 0.25
+// corrisponde a una deviazione standard di 0.5, uno scarto tipico tra
+// le menzioni non trascurabile rispetto al range possibile.
+export const SOGLIA_SENTIMENT_CONTRASTANTE = 0.25;

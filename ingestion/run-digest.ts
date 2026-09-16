@@ -91,6 +91,7 @@ async function run(): Promise<void> {
         conteggioMenzioni: e.conteggioMenzioni,
         quotaAttenzione,
         sentimentMedio: e.sentimentMedio,
+        sentimentVarianza: e.sentimentVarianza,
         variazioneRispettoAlDigestPrecedente: variazione,
         primaComparsa,
         newsItems: { connect: e.newsItemIds.map((id) => ({ id })) },

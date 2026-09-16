@@ -58,6 +58,9 @@ describe("extractSignals", () => {
         nome: "Bitcoin",
         conteggioMenzioni: 2,
         sentimentMedio: 0.4,
+        // expect.closeTo, non 0.04 esatto: virgola mobile su una
+        // sottrazione/potenza non dà sempre lo stesso valore all'ultimo bit.
+        sentimentVarianza: expect.closeTo(0.04),
         newsItemIds: ["a1", "a3"],
       },
     ]);
@@ -129,7 +132,14 @@ describe("extractSignals", () => {
     ]);
 
     expect(result).toEqual([
-      { tipo: "asset", nome: "Bitcoin", conteggioMenzioni: 1, sentimentMedio: 0.5, newsItemIds: ["a1"] },
+      {
+        tipo: "asset",
+        nome: "Bitcoin",
+        conteggioMenzioni: 1,
+        sentimentMedio: 0.5,
+        sentimentVarianza: 0,
+        newsItemIds: ["a1"],
+      },
     ]);
   });
 
@@ -149,5 +159,28 @@ describe("extractSignals", () => {
     ]);
 
     expect(result).toEqual([]);
+  });
+
+  it("calcola una varianza del sentiment alta quando le menzioni sono contrastanti", async () => {
+    createMock.mockResolvedValue(
+      toolUseResponse([
+        {
+          tipo: "asset",
+          nome: "Bitcoin",
+          menzioni: [
+            { indiceArticolo: 0, sentiment: 1 },
+            { indiceArticolo: 1, sentiment: -1 },
+          ],
+        },
+      ]),
+    );
+
+    const result = await extractSignals([
+      { id: "a1", titolo: "T1", estratto: "E1", fonte: "F1" },
+      { id: "a2", titolo: "T2", estratto: "E2", fonte: "F1" },
+    ]);
+
+    expect(result[0].sentimentMedio).toBeCloseTo(0);
+    expect(result[0].sentimentVarianza).toBeCloseTo(1);
   });
 });

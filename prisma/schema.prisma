@@ -57,6 +57,14 @@ model Signal {
   // è trending e per calcolare la variazione sotto.
   quotaAttenzione                       Float
   sentimentMedio                        Float // -1..1
+  // Varianza di popolazione del sentiment tra le menzioni del segnale
+  // (lib/dispersione-sentiment.ts) — un segnale con metà menzioni molto
+  // positive e metà molto negative ha sentimentMedio vicino a 0 come uno
+  // uniformemente neutro, ma qui si distinguono: la media da sola
+  // nasconde il disaccordo tra le fonti. Opzionale: le righe create
+  // prima di questo campo non hanno le menzioni individuali con cui
+  // ricalcolarlo a posteriori (solo sentimentMedio era persistito).
+  sentimentVarianza                     Float?
   // ora calcolata su quotaAttenzione, non sul conteggio grezzo — vedi
   // sopra.
   variazioneRispettoAlDigestPrecedente  Float?

@@ -1,4 +1,5 @@
 import type { Explanation, PriceSnapshot, Signal } from "@/generated/prisma/client";
+import { SOGLIA_SENTIMENT_CONTRASTANTE } from "@/lib/soglie";
 
 export type SignalWithRelations = Signal & {
   explanation: Explanation | null;
@@ -82,6 +83,15 @@ export function SignalCard({
               {ETICHETTA_ATTENZIONE_CAP[livelloAttenzioneCap]}
             </span>
           )}
+          {signal.sentimentVarianza !== null &&
+            signal.sentimentVarianza > SOGLIA_SENTIMENT_CONTRASTANTE && (
+              <span
+                className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium bg-black/[.05] dark:bg-white/[.08] text-current/70"
+                title="Le fonti non sono d'accordo: menzioni con sentiment molto diverso tra loro, la media da sola non lo mostra"
+              >
+                sentiment contrastante
+              </span>
+            )}
         </div>
         <span className="shrink-0 rounded-full bg-black/[.05] dark:bg-white/[.08] px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-current/70">
           {signal.tipo}
