@@ -37,18 +37,16 @@ Quando si decide di implementare un'idea, questo file va aggiornato
   giorno con finestre non uniformi tra loro), che rendeva il problema
   concreto e non solo teorico. Vedi `ingestion/analysis/trending.ts` e
   `docs/piano-architettura.md`.
-- [ ] **Badge "nuovo"** per un Signal mai visto in nessun digest
-  precedente — economico da calcolare (già disponibile via il confronto
-  col digest precedente usato per `variazioneRispettoAlDigestPrecedente`),
-  comunica un'informazione diversa dal solo conteggio menzioni.
-  Raffinamento possibile: distinguere "mai apparso prima" (IPO,
-  tecnologia nuova) da "torna dopo un'assenza" (es. una vecchia crypto
-  che torna di moda dopo settimane di silenzio) — richiede cercare
-  l'ultima apparizione nello storico, non solo il confronto col digest
-  immediatamente precedente.
-- [ ] **Etichetta "giornata a bassa attività"** quando un digest ha
-  pochi segnali — evita che una dashboard quasi vuota sembri un
-  malfunzionamento invece di un giorno editorialmente silenzioso.
+- [x] **Badge "nuovo"** — **implementato il 2026-09-16** come
+  `Signal.primaComparsa`, con il raffinamento incluso fin da subito
+  (non solo la versione base): cerca in TUTTO lo storico, non solo il
+  digest immediatamente precedente, quindi distingue davvero "mai
+  apparso prima" da "torna dopo un'assenza". Una query sola su tutti i
+  nome+tipo storici invece di una per segnale. Vedi `ingestion/run-digest.ts`.
+- [x] **Etichetta "giornata a bassa attività"** — **implementato il
+  2026-09-16**, soglia `SOGLIA_BASSA_ATTIVITA` in `lib/soglie.ts`
+  (arbitraria, da ricalibrare con storico reale, come le soglie di
+  trending).
 - [ ] **Watchlist personale** — asset/aziende marcati per restare
   sempre in cima indipendentemente dal trending. Personalizzazione su
   cosa conta per l'utente, invece di più indicatori uguali per tutti.
@@ -95,18 +93,22 @@ Quando si decide di implementare un'idea, questo file va aggiornato
 
 ### Calendario di eventi noti — segnalato di interesse dall'utente
 
+**Implementato (parzialmente) il 2026-09-16**: solo la parte macro
+generale (FOMC/CPI/NFP), come banner sulla pagina del digest — non come
+vista aggregata Livello 2 separata come pensato inizialmente qui sotto,
+per evitare di costruire una pagina nuova solo per questo. Vedi
+`lib/calendario-macro.ts`: date reali verificate su
+federalreserve.gov/bls.gov (non generate), FOMC 2027 marcate
+esplicitamente "tentative" perché non ancora confermate dalla Fed. Da
+aggiornare quando escono nuovi calendari ufficiali.
+
 Arricchire il digest con un contesto calendario: un picco di attenzione
 che coincide con un evento macro programmato (riunione FOMC, rilascio
 dati CPI/occupazione, earnings season) è meno "sorprendente" di uno che
 spunta dal nulla — utile per distinguere rumore da segnale prima ancora
 di guardare i numeri.
 
-Note pratiche da considerare quando si passa all'implementazione (non
-ancora decise):
-- Un calendario **macro generale** (FOMC, CPI, NFP) ha date pubbliche e
-  note in anticipo, tracciabile con una lista curata aggiornata
-  periodicamente — stesso principio "piccola lista verificata" già in
-  uso per feed RSS e mappe ticker.
+**Resta da fare** (non implementato):
 - Un calendario **earnings per singola azienda** è più granulare ma
   richiederebbe una fonte esterna dedicata (le API earnings-calendar
   gratuite sono limitate): da valutare solo se il rollup per
@@ -181,6 +183,12 @@ ancora decise):
   geopolitico una volta che esiste il rollup geografico (Livello 2).
 
 ## Ultimo aggiornamento
+
+2026-09-16 (seconda modifica) — implementate altre 3 idee: badge
+"nuovo" (con il raffinamento incluso da subito), etichetta "giornata a
+bassa attività", e la parte macro del calendario eventi (come banner,
+non come vista Livello 2 separata — earnings per azienda resta da
+fare). Vedi le voci spuntate sopra per il dettaglio.
 
 2026-09-16 — implementata "Share of voice invece di conteggio assoluto"
 (prima idea di questo file a essere realizzata), vedi la voce spuntata
