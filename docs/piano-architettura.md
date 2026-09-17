@@ -232,3 +232,27 @@ storico reale accumulato nel frattempo (attesi ~30 digest con 3
 run/giorno lun-ven), non a priori — diverse idee di Livello 2/3 (market
 mood nel tempo, tasso di successo dei segnali trending, correlazioni)
 diventano costruibili solo a quel punto.
+
+- **Fatto il 2026-09-17, eccezione al congelamento** (bug di
+  correttezza dei dati, non una feature): analizzando i primi 4 digest
+  reali, trovato che il 78-89% degli articoli di ogni raccolta erano
+  già stati processati in un digest di poche ore prima — i feed RSS
+  mostrano una finestra di "ultimi N articoli", non "nuovi da quando ho
+  controllato". Non solo spreco di chiamate Claude: falsava
+  `quotaAttenzione`, che ricontava lo stesso articolo come attenzione
+  fresca più volte — un problema di validità dei dati per un'app che
+  misura attenzione nel tempo, non un dettaglio di costo. Aggiunta
+  deduplica per URL in `ingestion/run-digest.ts` prima di creare
+  `NewsItem`/chiamare `extractSignals`: solo articoli mai visti prima
+  vengono processati. Se in un ciclo non c'è nulla di nuovo, il digest
+  viene saltato (nessuna riga vuota, nessun fallimento segnalato).
+  **I 4 digest già in `dev.db` restano con la vecchia logica** (non
+  ricalcolati) — da tenere presente confrontandoli con quelli successivi
+  al 2026-09-17: la quotaAttenzione pre-fix non è direttamente
+  comparabile con quella post-fix.
+- Stessa sessione: le spiegazioni Sonnet troncate a metà frase (bug
+  diverso, stesso pattern del troncamento già visto su Haiku) risolte
+  cambiando il prompt a un limite esplicito di 50 parole invece di
+  alzare ancora `max_tokens` — verificato con un run reale autonomo che
+  nessuna delle 14 spiegazioni è più tagliata, e costa pure meno
+  (output più corto).
