@@ -22,14 +22,47 @@ async function run(): Promise<void> {
     process.exitCode = 1;
     return;
   }
-  log.info(`${rawNews.length} articoli raccolti`);
+  log.info(`${rawNews.length} articoli raccolti dai feed`);
+
+  // I feed RSS mostrano una finestra di "ultimi N articoli", non "nuovi da
+  // quando ho controllato l'ultima volta": con 3 run/giorno ravvicinati, la
+  // maggior parte di ogni raccolta e' la STESSA notizia gia' vista poche ore
+  // prima (verificato il 2026-09-17: 78-89% di sovrapposizione tra digest
+  // consecutivi). Senza questo filtro si paga Claude per ri-estrarre segnali
+  // gia' estratti, e quotaAttenzione conta piu' volte lo stesso articolo
+  // come se fosse attenzione fresca - falsando la metrica di fondo dell'app,
+  // non solo sprecando soldi. Scarto per URL invece che per titolo: due
+  // fonti diverse possono ripubblicare la stessa notizia con titoli lievemente
+  // diversi, ma l'URL originale resta lo stesso strumento affidabile di
+  // deduplica gia' garantito dal feed stesso.
+  const urlEsistenti = new Set(
+    (
+      await db.newsItem.findMany({
+        where: { url: { in: rawNews.map((n) => n.url) } },
+        select: { url: true },
+      })
+    ).map((n) => n.url),
+  );
+  const nuoviArticoli = rawNews.filter((n) => !urlEsistenti.has(n.url));
+  log.info(
+    `${nuoviArticoli.length} articoli nuovi, ${rawNews.length - nuoviArticoli.length} gia' visti in un digest precedente (scartati)`,
+  );
+
+  if (nuoviArticoli.length === 0) {
+    // Non e' un fallimento: le fonti funzionano, semplicemente non e'
+    // uscito nulla di nuovo in questa finestra. Nessun Digest creato (non
+    // c'e' nulla da mostrare) e nessun process.exitCode impostato - il
+    // task pianificato non deve segnalarlo come un errore.
+    log.info("Nessun articolo nuovo rispetto ai digest precedenti: digest saltato per questo ciclo");
+    return;
+  }
 
   const digest = await db.digest.create({
     data: { periodoCoperto: new Date().toISOString().slice(0, 10) },
   });
 
   const newsItems = await Promise.all(
-    rawNews.map((item) => db.newsItem.create({ data: { ...item, digestId: digest.id } })),
+    nuoviArticoli.map((item) => db.newsItem.create({ data: { ...item, digestId: digest.id } })),
   );
 
   const extracted = await extractSignals(

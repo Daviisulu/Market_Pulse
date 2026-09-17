@@ -33,9 +33,14 @@ function buildPrompt(signal: SignalForExplanation): string {
     `${signal.conteggioMenzioni} menzioni, sentiment medio ${signal.sentimentMedio.toFixed(2)} ` +
     `(-1 molto negativo, +1 molto positivo), ${variazioneTesto}.\n\n` +
     `Articoli che ne parlano:\n${articoliTesto}\n\n` +
-    "Scrivi una spiegazione didattica di massimo 3-4 frasi per un lettore " +
-    "non esperto: cosa sta succedendo secondo questi articoli, perché se ne " +
-    "parla di più ora. Non dare consigli di investimento e non inventare " +
+    "Scrivi una spiegazione didattica per un lettore non esperto, in " +
+    "MASSIMO 50 PAROLE (non di più, anche a costo di essere meno " +
+    "dettagliato): cosa sta succedendo secondo questi articoli, perché se " +
+    "ne parla di più ora. Se ci sono più cause distinte, scegli solo la più " +
+    "rilevante invece di elencarle tutte — meglio breve e completo che " +
+    "lungo e tagliato a metà. Testo semplice, senza titoli, elenchi puntati " +
+    "o altra formattazione markdown: verrà mostrato come testo semplice, " +
+    "non renderizzato. Non dare consigli di investimento e non inventare " +
     "numeri o fatti non presenti negli articoli forniti. Se gli articoli non " +
     "bastano a spiegare l'aumento di attenzione, dillo esplicitamente invece " +
     "di indovinare."
